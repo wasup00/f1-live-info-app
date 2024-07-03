@@ -1,6 +1,7 @@
 package com.example.f1liveinfo
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,7 +30,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import coil.compose.AsyncImage
+import com.example.f1liveinfo.data.FetchMeetingWorker
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
@@ -37,6 +41,8 @@ import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val fetchRequest = OneTimeWorkRequestBuilder<FetchMeetingWorker>().build()
+        WorkManager.getInstance(this).enqueue(fetchRequest)
         enableEdgeToEdge()
         setContent {
             F1LiveInfoTheme {
@@ -74,14 +80,18 @@ fun F1App(modifier: Modifier = Modifier) {
         headshotUrl = "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png.transform/1col/image.png"
     )
 
-    val meeting = Meeting(
-        location = "Spielberg",
-        countryName = "Austria",
-        meetingName = "Austrian Grand Prix",
-        gmtOffset = "02:00:00",
-        dateStart = "2024-06-28T10:30:00+00:00",
-        year = 2024
-    )
+    val meeting = Meeting.getInstance()
+
+    Log.d("meeting", "F1App: $meeting")
+
+//        Meeting(
+//        location = "Spielberg",
+//        countryName = "Austria",
+//        meetingName = "Austrian Grand Prix",
+//        gmtOffset = "02:00:00",
+//        dateStart = "2024-06-28T10:30:00+00:00",
+//        year = 2024
+//    )
 
     val drivers = listOf(driver1, driver2)
 
