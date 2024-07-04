@@ -71,6 +71,5 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.json.v163)
-
+    implementation(kotlin("script-runtime"))
 }
