@@ -24,25 +24,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import coil.compose.AsyncImage
-import com.example.f1liveinfo.data.FetchMeetingWorker
+import com.example.f1liveinfo.data.MeetingUiState
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Meeting
+import com.example.f1liveinfo.ui.MeetingViewModel
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val fetchRequest = OneTimeWorkRequestBuilder<FetchMeetingWorker>().build()
-        WorkManager.getInstance(this).enqueue(fetchRequest)
+//        val fetchRequest = OneTimeWorkRequestBuilder<FetchMeetingWorker>().build()
+//        WorkManager.getInstance(this).enqueue(fetchRequest)
         enableEdgeToEdge()
         setContent {
             F1LiveInfoTheme {
@@ -58,7 +59,21 @@ fun parseColor(colorStr: String): Color {
 }
 
 @Composable
-fun F1App(modifier: Modifier = Modifier) {
+private fun F1App(
+    viewModel: MeetingViewModel = MeetingViewModel()
+) {
+    val meetingUiState by viewModel.meetingUiState.collectAsState()
+
+    F1App(
+        meetingUiState = meetingUiState
+    )
+}
+
+@Composable
+fun F1App(
+    meetingUiState: MeetingUiState,
+    modifier: Modifier = Modifier
+) {
     // Values of drivers are here for test purposes
     val driver1 = Driver(
         lastName = "Verstappen",
@@ -80,9 +95,9 @@ fun F1App(modifier: Modifier = Modifier) {
         headshotUrl = "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png.transform/1col/image.png"
     )
 
-    val meeting = Meeting.getInstance()
+//    val meeting = Meeting.getInstance()
 
-    Log.d("meeting", "F1App: $meeting")
+    Log.d("meeting", "F1App: $meetingUiState")
 
 //        Meeting(
 //        location = "Spielberg",
@@ -97,7 +112,21 @@ fun F1App(modifier: Modifier = Modifier) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { F1TopBar(meeting = meeting) },
+        topBar = {
+            when (meetingUiState) {
+                is MeetingUiState.Loading -> {
+                    F1TopBar(errorMessage = "")
+                }
+
+                is MeetingUiState.Success -> {
+                    F1TopBar(meeting = meetingUiState.meeting)
+                }
+
+                is MeetingUiState.Error -> {
+                    F1TopBar(errorMessage = meetingUiState.message)
+                }
+            }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -108,6 +137,47 @@ fun F1App(modifier: Modifier = Modifier) {
         }
 
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun F1TopBar(errorMessage: String, modifier: Modifier = Modifier) {
+    // TODO: Modify TopBar to display race status
+    CenterAlignedTopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Red,
+            titleContentColor = Color.Black,
+        ),
+        title = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = errorMessage,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        },
+
+        //Might be useful later
+        /* navigationIcon = {
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Localized description"
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = "Localized description"
+                )
+            }
+        },*/
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,7 +194,7 @@ fun F1TopBar(meeting: Meeting, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    meeting.meetingName,
+                    text = meeting.meetingName,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
