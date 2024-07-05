@@ -18,5 +18,5 @@ data class Driver(
     @SerialName("team_colour")
     val teamColour: String,
     @SerialName("headshot_url")
-    val headshotUrl: String
+    val headshotUrl: String? = null
 )
