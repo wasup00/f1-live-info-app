@@ -6,25 +6,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Meeting(
 //    val meetingKey: Int,
-    var location: String = "",
+    var location: String,
     @SerialName("country_name")
-    var countryName: String = "",
+    var countryName: String,
     @SerialName("meeting_name")
-    var meetingName: String = "",
+    var meetingName: String,
     @SerialName("gmt_offset")
-    var gmtOffset: String = "",
+    var gmtOffset: String,
     @SerialName("date_start")
-    var dateStart: String = "",
-    var year: Int = 2024
-) {
-    companion object {
-        @Volatile
-        private var instance: Meeting? = null
-
-        fun getInstance(): Meeting {
-            return instance ?: synchronized(this) {
-                instance ?: Meeting().also { instance = it }
-            }
-        }
-    }
-}
+    var dateStart: String,
+    var year: Int
+)
