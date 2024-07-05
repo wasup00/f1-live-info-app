@@ -81,7 +81,7 @@ fun F1App(
         countryCode = "NL",
         teamName = "Red Bull Racing",
         driverNumber = 1,
-        teamColor = "3671C6",
+        teamColour = "3671C6",
         headshotUrl = "https://www.formula1.com/content/dam/fom-website/drivers/M/MAXVER01_Max_Verstappen/maxver01.png.transform/1col/image.png"
     )
 
@@ -91,22 +91,12 @@ fun F1App(
         countryCode = "MC",
         teamName = "Scuderia Ferrari",
         driverNumber = 16,
-        teamColor = "F91536",
+        teamColour = "F91536",
         headshotUrl = "https://www.formula1.com/content/dam/fom-website/drivers/C/CHALEC01_Charles_Leclerc/chalec01.png.transform/1col/image.png"
     )
 
-//    val meeting = Meeting.getInstance()
-
     Log.d("meeting", "F1App: $meetingUiState")
 
-//        Meeting(
-//        location = "Spielberg",
-//        countryName = "Austria",
-//        meetingName = "Austrian Grand Prix",
-//        gmtOffset = "02:00:00",
-//        dateStart = "2024-06-28T10:30:00+00:00",
-//        year = 2024
-//    )
 
     val drivers = listOf(driver1, driver2)
 
@@ -239,7 +229,7 @@ fun ListOfDrivers(drivers: List<Driver>, modifier: Modifier = Modifier) {
 @Composable
 fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
-    val color = parseColor(driver.teamColor)
+    val color = parseColor(driver.teamColour)
 
     Card(
         colors = CardDefaults.cardColors(color),
@@ -248,14 +238,12 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
             .fillMaxWidth()
     ) {
         Row {
-            if (driver.headshotUrl != null) {
-                AsyncImage(
-                    model = driver.headshotUrl,
-                    contentDescription = null,
-                    modifier = modifier.size(80.dp)
-                )
-                Spacer(modifier = modifier.padding(6.dp))
-            }
+            AsyncImage(
+                model = driver.headshotUrl,
+                contentDescription = null,
+                modifier = modifier.size(80.dp)
+            )
+            Spacer(modifier = modifier.padding(6.dp))
             Column(modifier = modifier.padding(8.dp)) {
                 Text(
                     text = "${driver.firstName} ${driver.lastName} ${driver.driverNumber}",

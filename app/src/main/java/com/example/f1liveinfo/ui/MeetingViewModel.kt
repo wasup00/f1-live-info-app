@@ -57,7 +57,7 @@ class MeetingViewModel : ViewModel() {
 
             try {
                 val meetingList = json.decodeFromString<List<Meeting>>(response)
-                meetingList.firstOrNull() ?: Meeting()
+                meetingList.firstOrNull() ?: throw Exception("No meeting found")
             } catch (e: Exception) {
                 throw e
             }
