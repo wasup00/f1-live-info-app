@@ -74,4 +74,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(kotlin("script-runtime"))
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
 }

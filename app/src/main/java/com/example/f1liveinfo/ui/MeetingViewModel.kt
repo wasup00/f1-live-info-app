@@ -21,10 +21,10 @@ class MeetingViewModel : ViewModel() {
     val meetingUiState: StateFlow<MeetingUiState> = _meetingUiState.asStateFlow()
 
     init {
-        fetchMeetingData()
+        getMeetingData()
     }
 
-    private fun fetchMeetingData() {
+    private fun getMeetingData() {
         viewModelScope.launch {
             try {
                 // Simulate network fetch (replace with your actual data fetching logic)
