@@ -25,8 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,11 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.example.f1liveinfo.data.MeetingUiState
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.ui.DriverViewModel
 import com.example.f1liveinfo.ui.DriversUiState
+import com.example.f1liveinfo.ui.MeetingUiState
 import com.example.f1liveinfo.ui.MeetingViewModel
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
 
@@ -69,11 +67,9 @@ private fun F1App(
     meetingViewModel: MeetingViewModel = viewModel(),
     driverViewModel: DriverViewModel = viewModel()
 ) {
-    val meetingUiState by meetingViewModel.meetingUiState.collectAsState()
-
     F1App(
-        meetingUiState = meetingUiState,
-        driversUiState = driverViewModel.driversUiState
+        meetingUiState = meetingViewModel.meetingUiState,
+        driversUiState = driverViewModel.driversUiState,
     )
 }
 
@@ -109,76 +105,20 @@ fun DriversScreen(
     when (driversUiState) {
         is DriversUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
         is DriversUiState.Success -> ListOfDrivers(
-            driversUiState.drivers, modifier = modifier.fillMaxWidth()
+            driversUiState.drivers,
+            modifier = modifier.fillMaxWidth()
         )
 
         is DriversUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun F1TopBar(
     meetingUiState: MeetingUiState,
     modifier: Modifier = Modifier
 ) {
-    when (meetingUiState) {
-        is MeetingUiState.Loading -> {
-            F1TopBar(errorMessage = "")
-        }
-
-        is MeetingUiState.Success -> {
-            F1TopBar(meeting = meetingUiState.meeting)
-        }
-
-        is MeetingUiState.Error -> {
-            F1TopBar(errorMessage = meetingUiState.message)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun F1TopBar(errorMessage: String, modifier: Modifier = Modifier) {
-    CenterAlignedTopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Red,
-            titleContentColor = Color.Black,
-        ),
-        title = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = errorMessage,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        },
-
-        //Might be useful later
-        /* navigationIcon = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
-                )
-            }
-        },*/
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun F1TopBar(meeting: Meeting, modifier: Modifier = Modifier) {
     // TODO: Modify TopBar to display race status
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -186,20 +126,18 @@ fun F1TopBar(meeting: Meeting, modifier: Modifier = Modifier) {
             titleContentColor = Color.Black,
         ),
         title = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = meeting.meetingName,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${meeting.location}, ${meeting.countryName}",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelSmall,
-                )
+            when (meetingUiState) {
+                is MeetingUiState.Loading -> {
+                    LoadingScreen()
+                }
+
+                is MeetingUiState.Success -> {
+                    MeetingContent(meeting = meetingUiState.meeting)
+                }
+
+                is MeetingUiState.Error -> {
+                    ErrorScreen()
+                }
             }
         },
 
@@ -224,11 +162,53 @@ fun F1TopBar(meeting: Meeting, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ListOfDrivers(drivers: List<Driver>, modifier: Modifier = Modifier) {
+fun MeetingContent(meeting: Meeting, modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = meeting.meetingName,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = "${meeting.location}, ${meeting.countryName}",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelSmall,
+        )
+    }
+}
+
+@Composable
+fun ListOfDrivers(
+    drivers: List<Driver>,
+    modifier: Modifier = Modifier
+) {
     LazyColumn {
         items(drivers) { driver ->
-            DriverCard(driver = driver)
+            DriverStatus(driver = driver)
         }
+    }
+}
+
+@Composable
+fun DriverStatus(
+    driver: Driver,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "${driver.position}.",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color.White, //TODO: Change color based on Night mode
+            modifier = modifier.padding(start = 8.dp)
+        )
+        DriverCard(driver = driver)
     }
 }
 
@@ -296,6 +276,26 @@ fun ErrorScreen(modifier: Modifier = Modifier) {
 @Composable
 fun F1AppPreview() {
     F1LiveInfoTheme {
-        F1App()
+        val drivers = listOf(
+            Driver(
+                driverNumber = 1,
+                firstName = "Max",
+                lastName = "Verstappen",
+                teamName = "Red Bull",
+                teamColour = "3671C6",
+                countryCode = "NED",
+                position = 1
+            ),
+            Driver(
+                driverNumber = 2,
+                firstName = "Pierre",
+                lastName = "Gasly",
+                teamName = "Alpine",
+                teamColour = "2293D1",
+                countryCode = "FRA",
+                position = 2
+            )
+        )
+        ListOfDrivers(drivers = drivers)
     }
 }
