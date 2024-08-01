@@ -41,7 +41,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -62,7 +62,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.ui.test.junit4.android)
     testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -77,4 +79,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
 
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
 }

@@ -20,4 +20,16 @@ data class Driver(
     @SerialName("headshot_url")
     val headshotUrl: String? = null,
     var position: Int? = null
-)
+) {
+    companion object {
+        fun driversToDriverPositionsMap(drivers: List<Driver>): HashMap<Int, Int> {
+            val driverPositions = HashMap<Int, Int>()
+//            for (driver in drivers) {driverPositions[driver.driverNumber] = driver.position!!
+//            }
+            drivers.forEach { driver ->
+                driverPositions[driver.driverNumber] = driver.position!!
+            }
+            return driverPositions
+        }
+    }
+}
