@@ -90,7 +90,7 @@ class DriverViewModelTest {
         assertEquals(DriversUiState.Error, driverViewModel.driversUiState)
     }
 
-
+    //Read and return Drivers data from Json
     private fun getDriverFromDataSource(): List<Driver> {
 
         //Create Json object that ignore unknown keys
@@ -112,7 +112,7 @@ class DriverViewModelTest {
                 countryCode = "NED",
                 teamName = "Red Bull Racing",
                 driverNumber = 1,
-                teamColour = "3671C6",
+                teamColor = "3671C6",
                 position = 1
             ), Driver(
                 lastName = "Sargeant",
@@ -120,7 +120,7 @@ class DriverViewModelTest {
                 countryCode = "USA",
                 teamName = "Williams",
                 driverNumber = 2,
-                teamColour = "64C4FF",
+                teamColor = "64C4FF",
                 position = 2
             ), Driver(
                 lastName = "Ricciardo",
@@ -128,7 +128,7 @@ class DriverViewModelTest {
                 countryCode = "AUS",
                 teamName = "RB",
                 driverNumber = 3,
-                teamColour = "6692FF",
+                teamColor = "6692FF",
                 position = 3
             ), Driver(
                 lastName = "Norris",
@@ -136,7 +136,7 @@ class DriverViewModelTest {
                 countryCode = "GBR",
                 teamName = "McLaren",
                 driverNumber = 4,
-                teamColour = "FF8000",
+                teamColor = "FF8000",
                 position = 4
             ), Driver(
                 lastName = "Gasly",
@@ -144,7 +144,7 @@ class DriverViewModelTest {
                 countryCode = "FRA",
                 teamName = "Alpine",
                 driverNumber = 10,
-                teamColour = "0093CC",
+                teamColor = "0093CC",
                 position = 5
             ), Driver(
                 lastName = "Perez",
@@ -152,7 +152,7 @@ class DriverViewModelTest {
                 countryCode = "MEX",
                 teamName = "Red Bull Racing",
                 driverNumber = 11,
-                teamColour = "3671C6",
+                teamColor = "3671C6",
                 position = 6
             ), Driver(
                 lastName = "Alonso",
@@ -160,7 +160,7 @@ class DriverViewModelTest {
                 countryCode = "ESP",
                 teamName = "Aston Martin",
                 driverNumber = 14,
-                teamColour = "229971",
+                teamColor = "229971",
                 position = 7
             ), Driver(
                 lastName = "Leclerc",
@@ -168,7 +168,7 @@ class DriverViewModelTest {
                 countryCode = "MON",
                 teamName = "Ferrari",
                 driverNumber = 16,
-                teamColour = "E80020",
+                teamColor = "E80020",
                 position = 8
             ), Driver(
                 lastName = "Stroll",
@@ -176,7 +176,7 @@ class DriverViewModelTest {
                 countryCode = "CAN",
                 teamName = "Aston Martin",
                 driverNumber = 18,
-                teamColour = "229971",
+                teamColor = "229971",
                 position = 9
             ), Driver(
                 lastName = "Magnussen",
@@ -184,7 +184,7 @@ class DriverViewModelTest {
                 countryCode = "DEN",
                 teamName = "Haas F1 Team",
                 driverNumber = 20,
-                teamColour = "B6BABD",
+                teamColor = "B6BABD",
                 position = 10
             ), Driver(
                 lastName = "Tsunoda",
@@ -192,7 +192,7 @@ class DriverViewModelTest {
                 countryCode = "JPN",
                 teamName = "RB",
                 driverNumber = 22,
-                teamColour = "6692FF",
+                teamColor = "6692FF",
                 position = 11
             ), Driver(
                 lastName = "Albon",
@@ -200,7 +200,7 @@ class DriverViewModelTest {
                 countryCode = "THA",
                 teamName = "Williams",
                 driverNumber = 23,
-                teamColour = "64C4FF",
+                teamColor = "64C4FF",
                 position = 12
             ), Driver(
                 lastName = "Zhou",
@@ -208,7 +208,7 @@ class DriverViewModelTest {
                 countryCode = "CHN",
                 teamName = "Kick Sauber",
                 driverNumber = 24,
-                teamColour = "52E252",
+                teamColor = "52E252",
                 position = 13
             ), Driver(
                 lastName = "Hulkenberg",
@@ -216,7 +216,7 @@ class DriverViewModelTest {
                 countryCode = "GER",
                 teamName = "Haas F1 Team",
                 driverNumber = 27,
-                teamColour = "B6BABD",
+                teamColor = "B6BABD",
                 position = 14
             ), Driver(
                 lastName = "Ocon",
@@ -224,7 +224,7 @@ class DriverViewModelTest {
                 countryCode = "FRA",
                 teamName = "Alpine",
                 driverNumber = 31,
-                teamColour = "0093CC",
+                teamColor = "0093CC",
                 position = 15
             ), Driver(
                 lastName = "Hamilton",
@@ -232,7 +232,7 @@ class DriverViewModelTest {
                 countryCode = "GBR",
                 teamName = "Mercedes",
                 driverNumber = 44,
-                teamColour = "27F4D2",
+                teamColor = "27F4D2",
                 position = 16
             ), Driver(
                 lastName = "Sainz",
@@ -240,7 +240,7 @@ class DriverViewModelTest {
                 countryCode = "ESP",
                 teamName = "Ferrari",
                 driverNumber = 55,
-                teamColour = "E80020",
+                teamColor = "E80020",
                 position = 17
             ), Driver(
                 lastName = "Russell",
@@ -248,7 +248,7 @@ class DriverViewModelTest {
                 countryCode = "GBR",
                 teamName = "Mercedes",
                 driverNumber = 63,
-                teamColour = "27F4D2",
+                teamColor = "27F4D2",
                 position = 18
             ), Driver(
                 lastName = "Bottas",
@@ -256,7 +256,7 @@ class DriverViewModelTest {
                 countryCode = "FIN",
                 teamName = "Kick Sauber",
                 driverNumber = 77,
-                teamColour = "52E252",
+                teamColor = "52E252",
                 position = 19
             ), Driver(
                 lastName = "Piastri",
@@ -264,7 +264,7 @@ class DriverViewModelTest {
                 countryCode = "AUS",
                 teamName = "McLaren",
                 driverNumber = 81,
-                teamColour = "FF8000",
+                teamColor = "FF8000",
                 position = 20
             )
         )

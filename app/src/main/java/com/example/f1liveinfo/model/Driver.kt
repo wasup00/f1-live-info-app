@@ -16,7 +16,7 @@ data class Driver(
     @SerialName("driver_number")
     val driverNumber: Int,
     @SerialName("team_colour")
-    val teamColour: String,
+    val teamColor: String,
     @SerialName("headshot_url")
     val headshotUrl: String? = null,
     var position: Int? = null
