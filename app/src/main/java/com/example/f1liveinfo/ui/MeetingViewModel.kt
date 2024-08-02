@@ -1,12 +1,12 @@
 package com.example.f1liveinfo.ui
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.f1liveinfo.data.MeetingApi
+import com.example.f1liveinfo.data.MeetingApiService
 import com.example.f1liveinfo.model.Meeting
 import kotlinx.coroutines.launch
 
@@ -17,26 +17,29 @@ class MeetingViewModel : ViewModel() {
     var meetingUiState: MeetingUiState by mutableStateOf(MeetingUiState.Loading)
         private set
 
+    lateinit var meetingApiService: MeetingApiService
+
     init {
+        meetingApiService = MeetingApi.retrofitService
         getMeetingData()
     }
 
-    private fun getMeetingData() {
+    fun getMeetingData() {
         viewModelScope.launch {
             meetingUiState = try {
-                val meeting = MeetingApi.retrofitService.getMeetings().first()
-                Log.d(TAG, "getMeetingData: $meeting")
+                val meeting = meetingApiService.getMeetings().first()
+                //Log.d(TAG, "getMeetingData: $meeting")
                 MeetingUiState.Success(meeting)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to retrieve meeting: $e")
+                //Log.e(TAG, "Failed to retrieve meeting: $e")
                 MeetingUiState.Error
             }
         }
     }
 }
 
-sealed class MeetingUiState {
-    data class Success(val meeting: Meeting) : MeetingUiState()
-    object Loading : MeetingUiState()
-    object Error : MeetingUiState()
+sealed interface MeetingUiState {
+    data class Success(val meeting: Meeting) : MeetingUiState
+    object Loading : MeetingUiState
+    object Error : MeetingUiState
 }
