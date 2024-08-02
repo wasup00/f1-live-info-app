@@ -1,5 +1,6 @@
 package com.example.f1liveinfo
 
+import android.graphics.Color.parseColor
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -57,9 +58,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun parseColor(colorStr: String): Color {
+fun convertToColor(colorStr: String): Color {
     val hexStr = "#${colorStr}"
-    return Color(android.graphics.Color.parseColor(hexStr))
+    return Color(parseColor(hexStr))
 }
 
 @Composable
@@ -215,7 +216,7 @@ fun DriverStatus(
 @Composable
 fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
-    val color = parseColor(driver.teamColour)
+    val color = convertToColor(driver.teamColor)
 
     Card(
         colors = CardDefaults.cardColors(color),
@@ -282,7 +283,7 @@ fun F1AppPreview() {
                 firstName = "Max",
                 lastName = "Verstappen",
                 teamName = "Red Bull",
-                teamColour = "3671C6",
+                teamColor = "3671C6",
                 countryCode = "NED",
                 position = 1
             ),
@@ -291,7 +292,7 @@ fun F1AppPreview() {
                 firstName = "Pierre",
                 lastName = "Gasly",
                 teamName = "Alpine",
-                teamColour = "2293D1",
+                teamColor = "2293D1",
                 countryCode = "FRA",
                 position = 2
             )

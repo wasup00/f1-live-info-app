@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">F1 Live Info</string>
-    <string name="loading">Loading\n\n</string>
+    <string name="loading">Loading</string>
     <string name="loading_failed">Failed to load</string>
 </resources>
