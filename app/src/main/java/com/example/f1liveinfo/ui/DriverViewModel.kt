@@ -1,5 +1,6 @@
 package com.example.f1liveinfo.ui
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,8 +10,10 @@ import com.example.f1liveinfo.data.DriverApi
 import com.example.f1liveinfo.data.DriverApiService
 import com.example.f1liveinfo.model.Driver
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val TAG = "DriverViewModel"
 
@@ -18,10 +21,9 @@ class DriverViewModel : ViewModel() {
 
     var driversUiState: DriversUiState by mutableStateOf(DriversUiState.Loading)
 
-    lateinit var driverApiService: DriverApiService
+    val driverApiService: DriverApiService = DriverApi.retrofitService
 
     init {
-        driverApiService = DriverApi.retrofitService
         getDriversData()
     }
 
@@ -29,47 +31,30 @@ class DriverViewModel : ViewModel() {
         driversUiState = DriversUiState.Loading
         viewModelScope.launch {
             driversUiState = try {
-                val drivers = driverApiService.getDrivers()
-                val driverPositionsDeferred = drivers.map { driver ->
-                    async {
-                        val position =
-                            driverApiService.getPositions(driverNumber = driver.driverNumber)
-                                .lastOrNull()
-                        driver.position = position?.position
-                        driver
-                    }
+                val drivers = async { driverApiService.getDrivers() }
+                val positions = async { driverApiService.getPositions() }
+                val driverPositionsDeferred = drivers.await().map { driver ->
+                    val latestPosition = positions.await()
+                        .filter { it.driverNumber == driver.driverNumber }
+                        .maxByOrNull {
+                            SimpleDateFormat(
+                                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+                                Locale.getDefault()
+                            ).parse(it.date) ?: Date(0)
+                        }
+                    Log.d(TAG, "position of driver number ${driver.driverNumber}: $latestPosition")
+
+                    driver.position = latestPosition?.position
+                    driver
                 }
-                val updatedDrivers = driverPositionsDeferred.awaitAll()
-                val sortedDrivers = updatedDrivers.sortedBy { it.position }
+                val sortedDrivers = driverPositionsDeferred.sortedBy { it.position }
                 DriversUiState.Success(sortedDrivers)
             } catch (e: Exception) {
-                //Log.e(TAG, "Failed to retrieve drivers: $e")
+                Log.e(TAG, "Failed to retrieve drivers: $e")
                 DriversUiState.Error
             }
         }
     }
-
-//    fun getDriversData() {
-//        viewModelScope.launch {
-//            driversUiState = try {
-//                val drivers = driverApiService.getDrivers()
-//                Log.d(TAG, "getDriversData: $drivers")
-//                println("getDriversData: $drivers")
-//                drivers.forEach { driver ->
-//                    val position =
-//                        driverApiService.getPositions(driverNumber = driver.driverNumber)
-//                            .lastOrNull()
-//                    Log.d(TAG, "getPositionsData for ${driver.lastName}: ${position?.position}")
-//                    driver.position = position?.position
-//                }
-//                val sortedDrivers = drivers.sortedBy { it.position }
-//                DriversUiState.Success(sortedDrivers)
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Failed to retrieve drivers: $e")
-//                DriversUiState.Error
-//            }
-//        }
-//    }
 }
 
 sealed interface DriversUiState {
