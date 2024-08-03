@@ -15,7 +15,6 @@ private const val TAG = "MeetingViewModel"
 class MeetingViewModel : ViewModel() {
 
     var meetingUiState: MeetingUiState by mutableStateOf(MeetingUiState.Loading)
-        private set
 
     lateinit var meetingApiService: MeetingApiService
 
@@ -25,6 +24,7 @@ class MeetingViewModel : ViewModel() {
     }
 
     fun getMeetingData() {
+        meetingUiState = MeetingUiState.Loading
         viewModelScope.launch {
             meetingUiState = try {
                 val meeting = meetingApiService.getMeetings().first()

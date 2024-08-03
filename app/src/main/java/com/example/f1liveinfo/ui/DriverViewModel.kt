@@ -17,7 +17,6 @@ private const val TAG = "DriverViewModel"
 class DriverViewModel : ViewModel() {
 
     var driversUiState: DriversUiState by mutableStateOf(DriversUiState.Loading)
-        private set
 
     lateinit var driverApiService: DriverApiService
 
@@ -27,6 +26,7 @@ class DriverViewModel : ViewModel() {
     }
 
     fun getDriversData() {
+        driversUiState = DriversUiState.Loading
         viewModelScope.launch {
             driversUiState = try {
                 val drivers = driverApiService.getDrivers()

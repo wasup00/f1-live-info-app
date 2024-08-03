@@ -44,7 +44,7 @@ class MainActivityTest {
             position = 15
         )
         composeTestRule.setContent {
-            DriverStatus(driver = driver)
+            DriverCard(driver = driver)
         }
         composeTestRule.onNodeWithText("15.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Max Verstappen 1").assertIsDisplayed()

@@ -17,10 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -64,35 +68,37 @@ fun convertToColor(colorStr: String): Color {
 }
 
 @Composable
-private fun F1App(
-    meetingViewModel: MeetingViewModel = viewModel(),
-    driverViewModel: DriverViewModel = viewModel()
-) {
-    F1App(
-        meetingUiState = meetingViewModel.meetingUiState,
-        driversUiState = driverViewModel.driversUiState,
-    )
-}
-
-@Composable
 fun F1App(
-    meetingUiState: MeetingUiState,
-    driversUiState: DriversUiState,
+    meetingViewModel: MeetingViewModel = viewModel(),
+    driverViewModel: DriverViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
 
-    Log.d(TAG, "Drivers: $driversUiState")
+//    //Hide status bar
+//    val systemUiController = rememberSystemUiController()
+//    systemUiController.isStatusBarVisible = false
+//
+//    //Hide navigation bar
+//    val view = LocalView.current
+//    ViewCompat.getWindowInsetsController(view)?.hide(WindowInsetsCompat.Type.systemBars())
+
+    Log.d(TAG, "Drivers: ${driverViewModel.driversUiState}")
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = { F1TopBar(meetingUiState = meetingUiState) },
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            F1TopBar(
+                meetingViewModel = meetingViewModel,
+                driverViewModel = driverViewModel
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            DriversScreen(driversUiState = driversUiState)
+            DriversScreen(driversUiState = driverViewModel.driversUiState)
         }
 
     }
@@ -109,17 +115,24 @@ fun DriversScreen(
             driversUiState.drivers,
             modifier = modifier.fillMaxWidth()
         )
-
-        is DriversUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
+        is DriversUiState.Error -> ErrorScreen(modifierDriver = modifier.fillMaxSize())
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun F1TopBar(
-    meetingUiState: MeetingUiState,
+    meetingViewModel: MeetingViewModel,
+    driverViewModel: DriverViewModel,
     modifier: Modifier = Modifier
 ) {
+    val meetingUiState = meetingViewModel.meetingUiState
+    val driversUiState = driverViewModel.driversUiState
+
+    // Check if either meeting or driver data is loading
+    val isLoading =
+        meetingUiState is MeetingUiState.Loading || driversUiState is DriversUiState.Loading
+
     // TODO: Modify TopBar to display race status
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -129,7 +142,7 @@ fun F1TopBar(
         title = {
             when (meetingUiState) {
                 is MeetingUiState.Loading -> {
-                    LoadingScreen()
+                    LoadingScreen(modifier = Modifier.size(200.dp))
                 }
 
                 is MeetingUiState.Success -> {
@@ -137,7 +150,7 @@ fun F1TopBar(
                 }
 
                 is MeetingUiState.Error -> {
-                    ErrorScreen()
+                    ErrorScreen(modifierMeeting = modifier.size(30.dp))
                 }
             }
         },
@@ -150,15 +163,25 @@ fun F1TopBar(
                     contentDescription = "Localized description"
                 )
             }
-        },
+        },*/
         actions = {
-            IconButton(onClick = { /* do something */ }) {
+            IconButton(
+                onClick = {
+                    refreshData(
+                        meetingViewModel = meetingViewModel,
+                        driverViewModel = driverViewModel
+                    )
+                },
+                enabled = !isLoading,
+
+            ) {
                 Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
+                    imageVector = Icons.Filled.Refresh,
+                    contentDescription = "Refresh",
+                    tint = Color.Black
                 )
             }
-        },*/
+        }
     )
 }
 
@@ -188,28 +211,8 @@ fun ListOfDrivers(
 ) {
     LazyColumn {
         items(drivers) { driver ->
-            DriverStatus(driver = driver)
+            DriverCard(driver = driver)
         }
-    }
-}
-
-@Composable
-fun DriverStatus(
-    driver: Driver,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "${driver.position}.",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White, //TODO: Change color based on Night mode
-            modifier = modifier.padding(start = 8.dp)
-        )
-        DriverCard(driver = driver)
     }
 }
 
@@ -224,7 +227,17 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
             .padding(top = 8.dp, start = 8.dp, end = 8.dp)
             .fillMaxWidth()
     ) {
-        Row {
+        Row(
+            modifier = modifier.fillMaxSize()
+        ) {
+            Text(
+                text = "${driver.position}.",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Color.Black,
+                modifier = modifier
+                    .padding(start = 10.dp)
+                    .align(Alignment.CenterVertically)
+            )
             AsyncImage(
                 model = driver.headshotUrl,
                 contentDescription = null,
@@ -250,53 +263,261 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
     Image(
-        modifier = modifier.size(200.dp),
+        modifier = modifier,
         painter = painterResource(R.drawable.loading_img),
         contentDescription = stringResource(R.string.loading)
     )
 }
 
 @Composable
-fun ErrorScreen(modifier: Modifier = Modifier) {
+fun ErrorScreen(modifierDriver: Modifier = Modifier, modifierMeeting: Modifier = Modifier) {
     Column(
-        modifier = modifier,
+        modifier = modifierDriver,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_connection_error), contentDescription = ""
+            painter = painterResource(id = R.drawable.ic_connection_error),
+            contentDescription = "",
+            modifier = modifierMeeting
         )
-        Text(text = stringResource(R.string.loading_failed), modifier = Modifier.padding(16.dp))
+        Text(
+            text = stringResource(R.string.loading_failed),
+        )
+    }
+}
+
+private fun refreshData(meetingViewModel: MeetingViewModel, driverViewModel: DriverViewModel) {
+    meetingViewModel.getMeetingData()
+    driverViewModel.getDriversData()
+}
+
+@Preview(
+    showBackground = true,
+)
+@Composable
+fun F1AppPreviewOnSuccess() {
+    val meetingViewModel: MeetingViewModel = viewModel()
+    val driverViewModel: DriverViewModel = viewModel()
+
+    meetingViewModel.meetingUiState = MeetingUiState.Success(
+        Meeting(
+            meetingName = "Belgian Grand Prix",
+            location = "Spa-Francorchamps",
+            countryName = "Belgium",
+            dateStart = "2024-07-26T11:30:00+00:00",
+            gmtOffset = "02:00:00",
+            year = 2024
+        )
+    )
+
+    driverViewModel.driversUiState = DriversUiState.Success(
+        listOf(
+            Driver(
+                lastName = "Verstappen",
+                firstName = "Max",
+                countryCode = "NED",
+                teamName = "Red Bull Racing",
+                driverNumber = 1,
+                teamColor = "3671C6",
+                position = 1
+            ), Driver(
+                lastName = "Sargeant",
+                firstName = "Logan",
+                countryCode = "USA",
+                teamName = "Williams",
+                driverNumber = 2,
+                teamColor = "64C4FF",
+                position = 2
+            ), Driver(
+                lastName = "Ricciardo",
+                firstName = "Daniel",
+                countryCode = "AUS",
+                teamName = "RB",
+                driverNumber = 3,
+                teamColor = "6692FF",
+                position = 3
+            ), Driver(
+                lastName = "Norris",
+                firstName = "Lando",
+                countryCode = "GBR",
+                teamName = "McLaren",
+                driverNumber = 4,
+                teamColor = "FF8000",
+                position = 4
+            ), Driver(
+                lastName = "Gasly",
+                firstName = "Pierre",
+                countryCode = "FRA",
+                teamName = "Alpine",
+                driverNumber = 10,
+                teamColor = "0093CC",
+                position = 5
+            ), Driver(
+                lastName = "Perez",
+                firstName = "Sergio",
+                countryCode = "MEX",
+                teamName = "Red Bull Racing",
+                driverNumber = 11,
+                teamColor = "3671C6",
+                position = 6
+            ), Driver(
+                lastName = "Alonso",
+                firstName = "Fernando",
+                countryCode = "ESP",
+                teamName = "Aston Martin",
+                driverNumber = 14,
+                teamColor = "229971",
+                position = 7
+            ), Driver(
+                lastName = "Leclerc",
+                firstName = "Charles",
+                countryCode = "MON",
+                teamName = "Ferrari",
+                driverNumber = 16,
+                teamColor = "E80020",
+                position = 8
+            ), Driver(
+                lastName = "Stroll",
+                firstName = "Lance",
+                countryCode = "CAN",
+                teamName = "Aston Martin",
+                driverNumber = 18,
+                teamColor = "229971",
+                position = 9
+            ), Driver(
+                lastName = "Magnussen",
+                firstName = "Kevin",
+                countryCode = "DEN",
+                teamName = "Haas F1 Team",
+                driverNumber = 20,
+                teamColor = "B6BABD",
+                position = 10
+            ), Driver(
+                lastName = "Tsunoda",
+                firstName = "Yuki",
+                countryCode = "JPN",
+                teamName = "RB",
+                driverNumber = 22,
+                teamColor = "6692FF",
+                position = 11
+            ), Driver(
+                lastName = "Albon",
+                firstName = "Alexander",
+                countryCode = "THA",
+                teamName = "Williams",
+                driverNumber = 23,
+                teamColor = "64C4FF",
+                position = 12
+            ), Driver(
+                lastName = "Zhou",
+                firstName = "Guanyu",
+                countryCode = "CHN",
+                teamName = "Kick Sauber",
+                driverNumber = 24,
+                teamColor = "52E252",
+                position = 13
+            ), Driver(
+                lastName = "Hulkenberg",
+                firstName = "Nico",
+                countryCode = "GER",
+                teamName = "Haas F1 Team",
+                driverNumber = 27,
+                teamColor = "B6BABD",
+                position = 14
+            ), Driver(
+                lastName = "Ocon",
+                firstName = "Esteban",
+                countryCode = "FRA",
+                teamName = "Alpine",
+                driverNumber = 31,
+                teamColor = "0093CC",
+                position = 15
+            ), Driver(
+                lastName = "Hamilton",
+                firstName = "Lewis",
+                countryCode = "GBR",
+                teamName = "Mercedes",
+                driverNumber = 44,
+                teamColor = "27F4D2",
+                position = 16
+            ), Driver(
+                lastName = "Sainz",
+                firstName = "Carlos",
+                countryCode = "ESP",
+                teamName = "Ferrari",
+                driverNumber = 55,
+                teamColor = "E80020",
+                position = 17
+            ), Driver(
+                lastName = "Russell",
+                firstName = "George",
+                countryCode = "GBR",
+                teamName = "Mercedes",
+                driverNumber = 63,
+                teamColor = "27F4D2",
+                position = 18
+            ), Driver(
+                lastName = "Bottas",
+                firstName = "Valtteri",
+                countryCode = "FIN",
+                teamName = "Kick Sauber",
+                driverNumber = 77,
+                teamColor = "52E252",
+                position = 19
+            ), Driver(
+                lastName = "Piastri",
+                firstName = "Oscar",
+                countryCode = "AUS",
+                teamName = "McLaren",
+                driverNumber = 81,
+                teamColor = "FF8000",
+                position = 20
+            )
+        )
+    )
+
+    F1LiveInfoTheme {
+        F1App(
+            meetingViewModel = meetingViewModel,
+            driverViewModel = driverViewModel
+        )
     }
 }
 
 @Preview(
     showBackground = true,
-    showSystemUi = true
 )
 @Composable
-fun F1AppPreview() {
+fun F1AppPreviewOnLoading() {
+    val meetingViewModel: MeetingViewModel = viewModel()
+    val driverViewModel: DriverViewModel = viewModel()
+
+    meetingViewModel.meetingUiState = MeetingUiState.Loading
+    driverViewModel.driversUiState = DriversUiState.Loading
+
     F1LiveInfoTheme {
-        val drivers = listOf(
-            Driver(
-                driverNumber = 1,
-                firstName = "Max",
-                lastName = "Verstappen",
-                teamName = "Red Bull",
-                teamColor = "3671C6",
-                countryCode = "NED",
-                position = 1
-            ),
-            Driver(
-                driverNumber = 2,
-                firstName = "Pierre",
-                lastName = "Gasly",
-                teamName = "Alpine",
-                teamColor = "2293D1",
-                countryCode = "FRA",
-                position = 2
-            )
+        F1App(
+            meetingViewModel = meetingViewModel,
+            driverViewModel = driverViewModel
         )
-        ListOfDrivers(drivers = drivers)
+    }
+}
+
+@Preview(
+    showBackground = true,
+)
+@Composable
+fun F1AppPreviewOnError() {
+    val meetingViewModel: MeetingViewModel = viewModel()
+    val driverViewModel: DriverViewModel = viewModel()
+
+    meetingViewModel.meetingUiState = MeetingUiState.Error
+    driverViewModel.driversUiState = DriversUiState.Error
+    F1LiveInfoTheme {
+        F1App(
+            meetingViewModel = meetingViewModel,
+            driverViewModel = driverViewModel
+        )
     }
 }
