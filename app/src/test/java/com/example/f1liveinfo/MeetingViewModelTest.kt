@@ -75,9 +75,9 @@ class MeetingViewModelTest {
 
 //    @Test
 //    fun `getMeetingData loading`() = runTest {
-//        Mockito.`when`(meetingApiService.getMeetings(LATEST)).thenReturn(listOf())
+//        Mockito.`when`(meetingApiService.getMeetings()).thenReturn(null)
 //
-//        assertEquals(MeetingsUiState.Loading, meetingViewModel.meetingsUiState)
+//        assertEquals(MeetingUiState.Loading, meetingViewModel.meetingUiState)
 //    }
 
     @Test
@@ -85,6 +85,8 @@ class MeetingViewModelTest {
         Mockito.`when`(meetingApiService.getMeetings()).thenReturn(null)
 
         meetingViewModel.getMeetingData()
+
+        testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(MeetingUiState.Error, meetingViewModel.meetingUiState)
     }

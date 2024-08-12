@@ -1,6 +1,5 @@
 package com.example.f1liveinfo.ui
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,7 +20,7 @@ class DriverViewModel : ViewModel() {
 
     var driversUiState: DriversUiState by mutableStateOf(DriversUiState.Loading)
 
-    val driverApiService: DriverApiService = DriverApi.retrofitService
+    var driverApiService: DriverApiService = DriverApi.retrofitService
 
     init {
         getDriversData()
@@ -42,15 +41,15 @@ class DriverViewModel : ViewModel() {
                                 Locale.getDefault()
                             ).parse(it.date) ?: Date(0)
                         }
-                    Log.d(TAG, "position of driver number ${driver.driverNumber}: $latestPosition")
-
+                    //Log.d(TAG, "position of driver number ${driver.driverNumber}: $latestPosition")
+                    println("position of driver number ${driver.driverNumber}: $latestPosition")
                     driver.position = latestPosition?.position
                     driver
                 }
                 val sortedDrivers = driverPositionsDeferred.sortedBy { it.position }
                 DriversUiState.Success(sortedDrivers)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to retrieve drivers: $e")
+                //Log.e(TAG, "Failed to retrieve drivers: $e")
                 DriversUiState.Error
             }
         }

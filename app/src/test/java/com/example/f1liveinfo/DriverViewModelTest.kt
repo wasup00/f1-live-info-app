@@ -1,5 +1,4 @@
 import com.example.f1liveinfo.data.DriverApiService
-import com.example.f1liveinfo.data.LATEST
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Position
 import com.example.f1liveinfo.ui.DriverViewModel
@@ -30,6 +29,8 @@ class DriverViewModelTest {
 
     private lateinit var driversFromData: List<Driver>
 
+    private lateinit var positionsFromData: List<Position>
+
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
@@ -40,8 +41,10 @@ class DriverViewModelTest {
         driverViewModel.driverApiService = driverApiService
 
         //Get data from json file
-        driversFromData = getDriverFromDataSource()
+        driversFromData = getDataFromJson("data_drivers.json")
         println("driversFromData: $driversFromData")
+        positionsFromData = getDataFromJson("data_positions.json")
+        println("positionsFromData: $positionsFromData")
     }
 
     @After
@@ -53,13 +56,9 @@ class DriverViewModelTest {
     fun `getDriversData success`() = runTest {
         // Mock successful API response
         val mockDrivers = driversFromData
+        val mockPositions = positionsFromData
         Mockito.`when`(driverApiService.getDrivers()).thenReturn(mockDrivers)
-        var i = 1
-        mockDrivers.forEach { driver ->
-            Mockito.`when`(driverApiService.getPositions(LATEST, driver.driverNumber))
-                .thenReturn(listOf(Position(driver.driverNumber, i)))
-            i++
-        }
+        Mockito.`when`(driverApiService.getPositions()).thenReturn(mockPositions)
 
         driverViewModel.getDriversData()
 
@@ -68,7 +67,7 @@ class DriverViewModelTest {
 
         assertEquals(
             DriversUiState.Success(
-                getDriversAndPositions()
+                expectedDriversAndPositions()
             ),
             driverViewModel.driversUiState
         )
@@ -83,7 +82,7 @@ class DriverViewModelTest {
 
     @Test
     fun `getDriversData error`() = runTest {
-        Mockito.`when`(driverApiService.getDrivers(LATEST)).thenReturn(null)
+        Mockito.`when`(driverApiService.getDrivers()).thenReturn(null)
 
         driverViewModel.getDriversData()
 
@@ -91,20 +90,14 @@ class DriverViewModelTest {
     }
 
     //Read and return Drivers data from Json
-    private fun getDriverFromDataSource(): List<Driver> {
-
-        //Create Json object that ignore unknown keys
-        val json = Json {
-            ignoreUnknownKeys = true
-        }
-
-        val inputStream: InputStream =
-            javaClass.classLoader!!.getResourceAsStream("data_drivers.json")
+    private inline fun <reified T> getDataFromJson(fileName: String): List<T> {
+        val json = Json { ignoreUnknownKeys = true }
+        val inputStream: InputStream = javaClass.classLoader!!.getResourceAsStream(fileName)
         val jsonString = inputStream.bufferedReader().use { it.readText() }
-        return json.decodeFromString<List<Driver>>(jsonString)
+        return json.decodeFromString<List<T>>(jsonString)
     }
 
-    private fun getDriversAndPositions(): List<Driver> {
+    private fun expectedDriversAndPositions(): List<Driver> {
         return listOf(
             Driver(
                 lastName = "Verstappen",
@@ -113,7 +106,7 @@ class DriverViewModelTest {
                 teamName = "Red Bull Racing",
                 driverNumber = 1,
                 teamColor = "3671C6",
-                position = 1
+                position = 5
             ), Driver(
                 lastName = "Sargeant",
                 firstName = "Logan",
@@ -121,7 +114,7 @@ class DriverViewModelTest {
                 teamName = "Williams",
                 driverNumber = 2,
                 teamColor = "64C4FF",
-                position = 2
+                position = 19
             ), Driver(
                 lastName = "Ricciardo",
                 firstName = "Daniel",
@@ -129,7 +122,7 @@ class DriverViewModelTest {
                 teamName = "RB",
                 driverNumber = 3,
                 teamColor = "6692FF",
-                position = 3
+                position = 11
             ), Driver(
                 lastName = "Norris",
                 firstName = "Lando",
@@ -137,7 +130,7 @@ class DriverViewModelTest {
                 teamName = "McLaren",
                 driverNumber = 4,
                 teamColor = "FF8000",
-                position = 4
+                position = 6
             ), Driver(
                 lastName = "Gasly",
                 firstName = "Pierre",
@@ -145,7 +138,7 @@ class DriverViewModelTest {
                 teamName = "Alpine",
                 driverNumber = 10,
                 teamColor = "0093CC",
-                position = 5
+                position = 14
             ), Driver(
                 lastName = "Perez",
                 firstName = "Sergio",
@@ -153,7 +146,7 @@ class DriverViewModelTest {
                 teamName = "Red Bull Racing",
                 driverNumber = 11,
                 teamColor = "3671C6",
-                position = 6
+                position = 8
             ), Driver(
                 lastName = "Alonso",
                 firstName = "Fernando",
@@ -161,7 +154,7 @@ class DriverViewModelTest {
                 teamName = "Aston Martin",
                 driverNumber = 14,
                 teamColor = "229971",
-                position = 7
+                position = 9
             ), Driver(
                 lastName = "Leclerc",
                 firstName = "Charles",
@@ -169,7 +162,7 @@ class DriverViewModelTest {
                 teamName = "Ferrari",
                 driverNumber = 16,
                 teamColor = "E80020",
-                position = 8
+                position = 4
             ), Driver(
                 lastName = "Stroll",
                 firstName = "Lance",
@@ -177,7 +170,7 @@ class DriverViewModelTest {
                 teamName = "Aston Martin",
                 driverNumber = 18,
                 teamColor = "229971",
-                position = 9
+                position = 12
             ), Driver(
                 lastName = "Magnussen",
                 firstName = "Kevin",
@@ -185,7 +178,7 @@ class DriverViewModelTest {
                 teamName = "Haas F1 Team",
                 driverNumber = 20,
                 teamColor = "B6BABD",
-                position = 10
+                position = 15
             ), Driver(
                 lastName = "Tsunoda",
                 firstName = "Yuki",
@@ -193,7 +186,7 @@ class DriverViewModelTest {
                 teamName = "RB",
                 driverNumber = 22,
                 teamColor = "6692FF",
-                position = 11
+                position = 17
             ), Driver(
                 lastName = "Albon",
                 firstName = "Alexander",
@@ -201,7 +194,7 @@ class DriverViewModelTest {
                 teamName = "Williams",
                 driverNumber = 23,
                 teamColor = "64C4FF",
-                position = 12
+                position = 13
             ), Driver(
                 lastName = "Zhou",
                 firstName = "Guanyu",
@@ -209,7 +202,7 @@ class DriverViewModelTest {
                 teamName = "Kick Sauber",
                 driverNumber = 24,
                 teamColor = "52E252",
-                position = 13
+                position = 20
             ), Driver(
                 lastName = "Hulkenberg",
                 firstName = "Nico",
@@ -217,7 +210,7 @@ class DriverViewModelTest {
                 teamName = "Haas F1 Team",
                 driverNumber = 27,
                 teamColor = "B6BABD",
-                position = 14
+                position = 18
             ), Driver(
                 lastName = "Ocon",
                 firstName = "Esteban",
@@ -225,7 +218,7 @@ class DriverViewModelTest {
                 teamName = "Alpine",
                 driverNumber = 31,
                 teamColor = "0093CC",
-                position = 15
+                position = 10
             ), Driver(
                 lastName = "Hamilton",
                 firstName = "Lewis",
@@ -233,7 +226,7 @@ class DriverViewModelTest {
                 teamName = "Mercedes",
                 driverNumber = 44,
                 teamColor = "27F4D2",
-                position = 16
+                position = 2
             ), Driver(
                 lastName = "Sainz",
                 firstName = "Carlos",
@@ -241,7 +234,7 @@ class DriverViewModelTest {
                 teamName = "Ferrari",
                 driverNumber = 55,
                 teamColor = "E80020",
-                position = 17
+                position = 7
             ), Driver(
                 lastName = "Russell",
                 firstName = "George",
@@ -249,7 +242,7 @@ class DriverViewModelTest {
                 teamName = "Mercedes",
                 driverNumber = 63,
                 teamColor = "27F4D2",
-                position = 18
+                position = 1
             ), Driver(
                 lastName = "Bottas",
                 firstName = "Valtteri",
@@ -257,7 +250,7 @@ class DriverViewModelTest {
                 teamName = "Kick Sauber",
                 driverNumber = 77,
                 teamColor = "52E252",
-                position = 19
+                position = 16
             ), Driver(
                 lastName = "Piastri",
                 firstName = "Oscar",
@@ -265,8 +258,8 @@ class DriverViewModelTest {
                 teamName = "McLaren",
                 driverNumber = 81,
                 teamColor = "FF8000",
-                position = 20
+                position = 3
             )
-        )
+        ).sortedBy { it.position }
     }
 }
