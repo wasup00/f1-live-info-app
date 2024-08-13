@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.compose.material3.pullrefresh)
+    implementation(libs.androidx.material)
 
     testImplementation(libs.junit)
     testImplementation(libs.junit.jupiter)

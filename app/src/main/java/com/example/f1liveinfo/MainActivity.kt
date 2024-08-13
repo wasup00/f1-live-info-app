@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,9 +71,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun convertToColor(colorStr: String): Color {
+fun convertToColor(colorStr: String, alpha: Float = 1.0f): Color {
     val hexStr = "#${colorStr}"
-    return Color(parseColor(hexStr))
+    val colorInt = parseColor(hexStr)
+    return Color(colorInt).copy(alpha = alpha)
 }
 
 @Composable
@@ -245,7 +248,7 @@ fun RefreshableListOfDrivers(
 @Composable
 fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
-    val teamColor = convertToColor(driver.teamColor)
+    val teamColor = convertToColor(driver.teamColor, 0.9f)
 
     Card(
         colors = CardDefaults.cardColors(teamColor),
@@ -257,7 +260,7 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
             modifier = modifier.fillMaxSize()
         ) {
             Text(
-                text = "${driver.position}.",
+                text = "${driver.position}",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.Black,
                 modifier = modifier
@@ -279,6 +282,7 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
                 Text(
                     text = driver.teamName,
                     style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
                     color = Color.Black
                 )
             }
@@ -288,11 +292,12 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
-    Image(
-        modifier = modifier,
-        painter = painterResource(R.drawable.loading_img),
-        contentDescription = stringResource(R.string.loading)
-    )
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
 }
 
 @Composable
