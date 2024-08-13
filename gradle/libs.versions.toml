@@ -1,6 +1,7 @@
 [versions]
-agp = "8.5.1"
+agp = "8.5.2"
 coilCompose = "2.6.0"
+composeMaterial3Pullrefresh = "1.0.0"
 kotlin = "1.9.24"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -14,7 +15,7 @@ composeBom = "2024.06.00"
 mockitoCore = "4.11.0"
 retrofit = "2.9.0"
 retrofit2KotlinxSerializationConverter = "1.0.0"
-workRuntimeKtx = "2.9.0"
+workRuntimeKtx = "2.9.1"
 runtimeLivedata = "1.6.8"
 junitJupiter = "5.8.1"
 
@@ -22,6 +23,7 @@ junitJupiter = "5.8.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+compose-material3-pullrefresh = { module = "eu.bambooapps:compose-material3-pullrefresh", version.ref = "composeMaterial3Pullrefresh" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

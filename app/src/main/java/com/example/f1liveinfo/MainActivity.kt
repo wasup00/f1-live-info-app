@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +31,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +51,9 @@ import com.example.f1liveinfo.ui.DriversUiState
 import com.example.f1liveinfo.ui.MeetingUiState
 import com.example.f1liveinfo.ui.MeetingViewModel
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
+import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
+import eu.bambooapps.material3.pullrefresh.pullRefresh
+import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 
 private const val TAG = "MainActivity"
 
@@ -69,9 +76,9 @@ fun convertToColor(colorStr: String): Color {
 
 @Composable
 fun F1App(
+    modifier: Modifier = Modifier,
     meetingViewModel: MeetingViewModel = viewModel(),
     driverViewModel: DriverViewModel = viewModel(),
-    modifier: Modifier = Modifier
 ) {
 
 //    //Hide status bar
@@ -98,7 +105,10 @@ fun F1App(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            DriversScreen(driversUiState = driverViewModel.driversUiState)
+            DriversScreen(
+                driversUiState = driverViewModel.driversUiState,
+                onRefresh = { refreshData(meetingViewModel, driverViewModel) }
+            )
         }
 
     }
@@ -107,14 +117,17 @@ fun F1App(
 @Composable
 fun DriversScreen(
     driversUiState: DriversUiState,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (driversUiState) {
         is DriversUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        is DriversUiState.Success -> ListOfDrivers(
+        is DriversUiState.Success -> RefreshableListOfDrivers(
             driversUiState.drivers,
+            onRefresh = onRefresh,
             modifier = modifier.fillMaxWidth()
         )
+
         is DriversUiState.Error -> ErrorScreen(modifierDriver = modifier.fillMaxSize())
     }
 }
@@ -174,10 +187,10 @@ fun F1TopBar(
                 },
                 enabled = !isLoading,
 
-            ) {
+                ) {
                 Icon(
                     imageVector = Icons.Filled.Refresh,
-                    contentDescription = "Refresh",
+                    contentDescription = "Refresh race data",
                     tint = Color.Black
                 )
             }
@@ -204,25 +217,38 @@ fun MeetingContent(meeting: Meeting, modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListOfDrivers(
+fun RefreshableListOfDrivers(
     drivers: List<Driver>,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn {
-        items(drivers) { driver ->
-            DriverCard(driver = driver)
+    Box(modifier = modifier) {
+        val refreshing by remember { mutableStateOf(false) }
+        val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = onRefresh)
+        LazyColumn(
+            modifier = Modifier.pullRefresh(state),
+        ) {
+            items(drivers) { driver ->
+                DriverCard(driver = driver)
+            }
         }
+        PullRefreshIndicator(
+            refreshing = refreshing, state = state,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+        )
     }
 }
 
 @Composable
 fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
-    val color = convertToColor(driver.teamColor)
+    val teamColor = convertToColor(driver.teamColor)
 
     Card(
-        colors = CardDefaults.cardColors(color),
+        colors = CardDefaults.cardColors(teamColor),
         modifier = modifier
             .padding(top = 8.dp, start = 8.dp, end = 8.dp)
             .fillMaxWidth()
