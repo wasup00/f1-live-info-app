@@ -84,13 +84,10 @@ fun F1App(
     driverViewModel: DriverViewModel = viewModel(),
 ) {
 
-//    //Hide status bar
+    //Hide status and navigation bar
 //    val systemUiController = rememberSystemUiController()
 //    systemUiController.isStatusBarVisible = false
-//
-//    //Hide navigation bar
-//    val view = LocalView.current
-//    ViewCompat.getWindowInsetsController(view)?.hide(WindowInsetsCompat.Type.systemBars())
+//    systemUiController.isNavigationBarVisible = false
 
     Log.d(TAG, "Drivers: ${driverViewModel.driversUiState}")
 

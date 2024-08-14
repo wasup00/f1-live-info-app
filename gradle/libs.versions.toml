@@ -1,4 +1,5 @@
 [versions]
+accompanistSystemuicontroller = "0.30.0"
 agp = "8.5.2"
 coilCompose = "2.6.0"
 composeMaterial3Pullrefresh = "1.0.0"
@@ -21,6 +22,7 @@ runtimeLivedata = "1.6.8"
 junitJupiter = "5.8.1"
 
 [libraries]
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
