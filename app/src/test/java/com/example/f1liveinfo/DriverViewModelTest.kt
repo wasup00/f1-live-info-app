@@ -106,7 +106,7 @@ class DriverViewModelTest {
                 teamName = "Red Bull Racing",
                 driverNumber = 1,
                 teamColor = "3671C6",
-                position = 5
+                currentPosition = 5
             ), Driver(
                 lastName = "Sargeant",
                 firstName = "Logan",
@@ -114,7 +114,7 @@ class DriverViewModelTest {
                 teamName = "Williams",
                 driverNumber = 2,
                 teamColor = "64C4FF",
-                position = 19
+                currentPosition = 19
             ), Driver(
                 lastName = "Ricciardo",
                 firstName = "Daniel",
@@ -122,7 +122,7 @@ class DriverViewModelTest {
                 teamName = "RB",
                 driverNumber = 3,
                 teamColor = "6692FF",
-                position = 11
+                currentPosition = 11
             ), Driver(
                 lastName = "Norris",
                 firstName = "Lando",
@@ -130,7 +130,7 @@ class DriverViewModelTest {
                 teamName = "McLaren",
                 driverNumber = 4,
                 teamColor = "FF8000",
-                position = 6
+                currentPosition = 6
             ), Driver(
                 lastName = "Gasly",
                 firstName = "Pierre",
@@ -138,7 +138,7 @@ class DriverViewModelTest {
                 teamName = "Alpine",
                 driverNumber = 10,
                 teamColor = "0093CC",
-                position = 14
+                currentPosition = 14
             ), Driver(
                 lastName = "Perez",
                 firstName = "Sergio",
@@ -146,7 +146,7 @@ class DriverViewModelTest {
                 teamName = "Red Bull Racing",
                 driverNumber = 11,
                 teamColor = "3671C6",
-                position = 8
+                currentPosition = 8
             ), Driver(
                 lastName = "Alonso",
                 firstName = "Fernando",
@@ -154,7 +154,7 @@ class DriverViewModelTest {
                 teamName = "Aston Martin",
                 driverNumber = 14,
                 teamColor = "229971",
-                position = 9
+                currentPosition = 9
             ), Driver(
                 lastName = "Leclerc",
                 firstName = "Charles",
@@ -162,7 +162,7 @@ class DriverViewModelTest {
                 teamName = "Ferrari",
                 driverNumber = 16,
                 teamColor = "E80020",
-                position = 4
+                currentPosition = 4
             ), Driver(
                 lastName = "Stroll",
                 firstName = "Lance",
@@ -170,7 +170,7 @@ class DriverViewModelTest {
                 teamName = "Aston Martin",
                 driverNumber = 18,
                 teamColor = "229971",
-                position = 12
+                currentPosition = 12
             ), Driver(
                 lastName = "Magnussen",
                 firstName = "Kevin",
@@ -178,7 +178,7 @@ class DriverViewModelTest {
                 teamName = "Haas F1 Team",
                 driverNumber = 20,
                 teamColor = "B6BABD",
-                position = 15
+                currentPosition = 15
             ), Driver(
                 lastName = "Tsunoda",
                 firstName = "Yuki",
@@ -186,7 +186,7 @@ class DriverViewModelTest {
                 teamName = "RB",
                 driverNumber = 22,
                 teamColor = "6692FF",
-                position = 17
+                currentPosition = 17
             ), Driver(
                 lastName = "Albon",
                 firstName = "Alexander",
@@ -194,7 +194,7 @@ class DriverViewModelTest {
                 teamName = "Williams",
                 driverNumber = 23,
                 teamColor = "64C4FF",
-                position = 13
+                currentPosition = 13
             ), Driver(
                 lastName = "Zhou",
                 firstName = "Guanyu",
@@ -202,7 +202,7 @@ class DriverViewModelTest {
                 teamName = "Kick Sauber",
                 driverNumber = 24,
                 teamColor = "52E252",
-                position = 20
+                currentPosition = 20
             ), Driver(
                 lastName = "Hulkenberg",
                 firstName = "Nico",
@@ -210,7 +210,7 @@ class DriverViewModelTest {
                 teamName = "Haas F1 Team",
                 driverNumber = 27,
                 teamColor = "B6BABD",
-                position = 18
+                currentPosition = 18
             ), Driver(
                 lastName = "Ocon",
                 firstName = "Esteban",
@@ -218,7 +218,7 @@ class DriverViewModelTest {
                 teamName = "Alpine",
                 driverNumber = 31,
                 teamColor = "0093CC",
-                position = 10
+                currentPosition = 10
             ), Driver(
                 lastName = "Hamilton",
                 firstName = "Lewis",
@@ -226,7 +226,7 @@ class DriverViewModelTest {
                 teamName = "Mercedes",
                 driverNumber = 44,
                 teamColor = "27F4D2",
-                position = 2
+                currentPosition = 2
             ), Driver(
                 lastName = "Sainz",
                 firstName = "Carlos",
@@ -234,7 +234,7 @@ class DriverViewModelTest {
                 teamName = "Ferrari",
                 driverNumber = 55,
                 teamColor = "E80020",
-                position = 7
+                currentPosition = 7
             ), Driver(
                 lastName = "Russell",
                 firstName = "George",
@@ -242,7 +242,7 @@ class DriverViewModelTest {
                 teamName = "Mercedes",
                 driverNumber = 63,
                 teamColor = "27F4D2",
-                position = 1
+                currentPosition = 1
             ), Driver(
                 lastName = "Bottas",
                 firstName = "Valtteri",
@@ -250,7 +250,7 @@ class DriverViewModelTest {
                 teamName = "Kick Sauber",
                 driverNumber = 77,
                 teamColor = "52E252",
-                position = 16
+                currentPosition = 16
             ), Driver(
                 lastName = "Piastri",
                 firstName = "Oscar",
@@ -258,8 +258,8 @@ class DriverViewModelTest {
                 teamName = "McLaren",
                 driverNumber = 81,
                 teamColor = "FF8000",
-                position = 3
+                currentPosition = 3
             )
-        ).sortedBy { it.position }
+        ).sortedBy { it.currentPosition }
     }
 }

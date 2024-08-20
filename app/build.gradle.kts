@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.compose.material3.pullrefresh)
     implementation(libs.androidx.material)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.material.icons.core)
+    implementation(libs.androidx.material.icons.extended)
 
     testImplementation(libs.junit)
     testImplementation(libs.junit.jupiter)

@@ -41,7 +41,7 @@ class MainActivityTest {
             teamName = "Red Bull Racing",
             driverNumber = 1,
             teamColor = "3671C6",
-            position = 15
+            currentPosition = 15
         )
         composeTestRule.setContent {
             DriverCard(driver = driver)

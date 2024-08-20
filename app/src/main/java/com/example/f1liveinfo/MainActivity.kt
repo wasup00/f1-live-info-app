@@ -19,7 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -56,6 +61,7 @@ import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
+import kotlin.math.absoluteValue
 
 private const val TAG = "MainActivity"
 
@@ -256,13 +262,8 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
         Row(
             modifier = modifier.fillMaxSize()
         ) {
-            Text(
-                text = "${driver.position}",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.Black,
-                modifier = modifier
-                    .padding(start = 10.dp)
-                    .align(Alignment.CenterVertically)
+            PositionCard(
+                driver = driver
             )
             AsyncImage(
                 model = driver.headshotUrl,
@@ -284,6 +285,49 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun PositionCard(driver: Driver, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(start = 8.dp, top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        val difference = if (driver.startingPosition != null || driver.currentPosition != null) {
+            driver.startingPosition?.minus(driver.currentPosition!!)!!
+        } else {
+            40
+        }
+        val color = when {
+            difference > 0 -> Color.Green
+            difference < 0 -> Color.Red
+            else -> Color.Black
+        }
+        val icon = when {
+            difference > 5 -> Icons.Filled.KeyboardDoubleArrowUp
+            difference > 0 -> Icons.Filled.ArrowDropUp
+            difference < -5 -> Icons.Filled.KeyboardDoubleArrowDown
+            difference < 0 -> Icons.Filled.ArrowDropDown
+            else -> Icons.Filled.Remove
+        }
+        Text(
+            text = driver.currentPosition.toString(),
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color.Black,
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = modifier.size(15.dp)
+        )
+        Text(
+            text = difference.absoluteValue.toString(),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Black,
+        )
     }
 }
 
@@ -348,7 +392,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Red Bull Racing",
                 driverNumber = 1,
                 teamColor = "3671C6",
-                position = 1
+                currentPosition = 1,
+                startingPosition = 1
             ), Driver(
                 lastName = "Sargeant",
                 firstName = "Logan",
@@ -356,7 +401,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Williams",
                 driverNumber = 2,
                 teamColor = "64C4FF",
-                position = 2
+                currentPosition = 2,
+                startingPosition = 10
             ), Driver(
                 lastName = "Ricciardo",
                 firstName = "Daniel",
@@ -364,7 +410,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "RB",
                 driverNumber = 3,
                 teamColor = "6692FF",
-                position = 3
+                currentPosition = 3,
+                startingPosition = 2
             ), Driver(
                 lastName = "Norris",
                 firstName = "Lando",
@@ -372,7 +419,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "McLaren",
                 driverNumber = 4,
                 teamColor = "FF8000",
-                position = 4
+                currentPosition = 4,
+                startingPosition = 3
             ), Driver(
                 lastName = "Gasly",
                 firstName = "Pierre",
@@ -380,7 +428,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Alpine",
                 driverNumber = 10,
                 teamColor = "0093CC",
-                position = 5
+                currentPosition = 5,
+                startingPosition = 15
             ), Driver(
                 lastName = "Perez",
                 firstName = "Sergio",
@@ -388,7 +437,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Red Bull Racing",
                 driverNumber = 11,
                 teamColor = "3671C6",
-                position = 6
+                currentPosition = 6,
+                startingPosition = 13
             ), Driver(
                 lastName = "Alonso",
                 firstName = "Fernando",
@@ -396,7 +446,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Aston Martin",
                 driverNumber = 14,
                 teamColor = "229971",
-                position = 7
+                currentPosition = 7,
+                startingPosition = 12
             ), Driver(
                 lastName = "Leclerc",
                 firstName = "Charles",
@@ -404,7 +455,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Ferrari",
                 driverNumber = 16,
                 teamColor = "E80020",
-                position = 8
+                currentPosition = 8,
+                startingPosition = 19
             ), Driver(
                 lastName = "Stroll",
                 firstName = "Lance",
@@ -412,7 +464,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Aston Martin",
                 driverNumber = 18,
                 teamColor = "229971",
-                position = 9
+                currentPosition = 9,
+                startingPosition = 20
             ), Driver(
                 lastName = "Magnussen",
                 firstName = "Kevin",
@@ -420,7 +473,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Haas F1 Team",
                 driverNumber = 20,
                 teamColor = "B6BABD",
-                position = 10
+                currentPosition = 10,
+                startingPosition = 18
             ), Driver(
                 lastName = "Tsunoda",
                 firstName = "Yuki",
@@ -428,7 +482,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "RB",
                 driverNumber = 22,
                 teamColor = "6692FF",
-                position = 11
+                currentPosition = 11,
+                startingPosition = 17
             ), Driver(
                 lastName = "Albon",
                 firstName = "Alexander",
@@ -436,7 +491,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Williams",
                 driverNumber = 23,
                 teamColor = "64C4FF",
-                position = 12
+                currentPosition = 12,
+                startingPosition = 16
             ), Driver(
                 lastName = "Zhou",
                 firstName = "Guanyu",
@@ -444,7 +500,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Kick Sauber",
                 driverNumber = 24,
                 teamColor = "52E252",
-                position = 13
+                currentPosition = 13,
+                startingPosition = 14
             ), Driver(
                 lastName = "Hulkenberg",
                 firstName = "Nico",
@@ -452,7 +509,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Haas F1 Team",
                 driverNumber = 27,
                 teamColor = "B6BABD",
-                position = 14
+                currentPosition = 14,
+                startingPosition = 13
             ), Driver(
                 lastName = "Ocon",
                 firstName = "Esteban",
@@ -460,7 +518,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Alpine",
                 driverNumber = 31,
                 teamColor = "0093CC",
-                position = 15
+                currentPosition = 15,
+                startingPosition = 7
             ), Driver(
                 lastName = "Hamilton",
                 firstName = "Lewis",
@@ -468,7 +527,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Mercedes",
                 driverNumber = 44,
                 teamColor = "27F4D2",
-                position = 16
+                currentPosition = 16,
+                startingPosition = 8
             ), Driver(
                 lastName = "Sainz",
                 firstName = "Carlos",
@@ -476,7 +536,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Ferrari",
                 driverNumber = 55,
                 teamColor = "E80020",
-                position = 17
+                currentPosition = 17,
+                startingPosition = 4
             ), Driver(
                 lastName = "Russell",
                 firstName = "George",
@@ -484,7 +545,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Mercedes",
                 driverNumber = 63,
                 teamColor = "27F4D2",
-                position = 18
+                currentPosition = 18,
+                startingPosition = 5
             ), Driver(
                 lastName = "Bottas",
                 firstName = "Valtteri",
@@ -492,7 +554,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "Kick Sauber",
                 driverNumber = 77,
                 teamColor = "52E252",
-                position = 19
+                currentPosition = 19,
+                startingPosition = 3
             ), Driver(
                 lastName = "Piastri",
                 firstName = "Oscar",
@@ -500,7 +563,8 @@ fun F1AppPreviewOnSuccess() {
                 teamName = "McLaren",
                 driverNumber = 81,
                 teamColor = "FF8000",
-                position = 20
+                currentPosition = 20,
+                startingPosition = 1
             )
         )
     )
@@ -513,39 +577,39 @@ fun F1AppPreviewOnSuccess() {
     }
 }
 
-@Preview(
-    showBackground = true,
-)
-@Composable
-fun F1AppPreviewOnLoading() {
-    val meetingViewModel: MeetingViewModel = viewModel()
-    val driverViewModel: DriverViewModel = viewModel()
-
-    meetingViewModel.meetingUiState = MeetingUiState.Loading
-    driverViewModel.driversUiState = DriversUiState.Loading
-
-    F1LiveInfoTheme {
-        F1App(
-            meetingViewModel = meetingViewModel,
-            driverViewModel = driverViewModel
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-)
-@Composable
-fun F1AppPreviewOnError() {
-    val meetingViewModel: MeetingViewModel = viewModel()
-    val driverViewModel: DriverViewModel = viewModel()
-
-    meetingViewModel.meetingUiState = MeetingUiState.Error
-    driverViewModel.driversUiState = DriversUiState.Error
-    F1LiveInfoTheme {
-        F1App(
-            meetingViewModel = meetingViewModel,
-            driverViewModel = driverViewModel
-        )
-    }
-}
+//@Preview(
+//    showBackground = true,
+//)
+//@Composable
+//fun F1AppPreviewOnLoading() {
+//    val meetingViewModel: MeetingViewModel = viewModel()
+//    val driverViewModel: DriverViewModel = viewModel()
+//
+//    meetingViewModel.meetingUiState = MeetingUiState.Loading
+//    driverViewModel.driversUiState = DriversUiState.Loading
+//
+//    F1LiveInfoTheme {
+//        F1App(
+//            meetingViewModel = meetingViewModel,
+//            driverViewModel = driverViewModel
+//        )
+//    }
+//}
+//
+//@Preview(
+//    showBackground = true,
+//)
+//@Composable
+//fun F1AppPreviewOnError() {
+//    val meetingViewModel: MeetingViewModel = viewModel()
+//    val driverViewModel: DriverViewModel = viewModel()
+//
+//    meetingViewModel.meetingUiState = MeetingUiState.Error
+//    driverViewModel.driversUiState = DriversUiState.Error
+//    F1LiveInfoTheme {
+//        F1App(
+//            meetingViewModel = meetingViewModel,
+//            driverViewModel = driverViewModel
+//        )
+//    }
+//}

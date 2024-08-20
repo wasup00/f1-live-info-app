@@ -11,7 +11,6 @@ import com.example.f1liveinfo.model.Driver
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 private const val TAG = "DriverViewModel"
@@ -39,14 +38,23 @@ class DriverViewModel : ViewModel() {
                             SimpleDateFormat(
                                 "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
                                 Locale.getDefault()
-                            ).parse(it.date) ?: Date(0)
+                            ).parse(it.date)
                         }
+                    if (driver.startingPosition == null) {
+                        val startingPosition =
+                            positions.await().firstOrNull { it.driverNumber == driver.driverNumber }
+                        if (startingPosition == null) {
+                            driver.startingPosition = 0
+                        } else {
+                            driver.startingPosition = startingPosition.position
+                        }
+                    }
                     //Log.d(TAG, "position of driver number ${driver.driverNumber}: $latestPosition")
                     println("position of driver number ${driver.driverNumber}: $latestPosition")
-                    driver.position = latestPosition?.position
+                    driver.currentPosition = latestPosition?.position!!
                     driver
                 }
-                val sortedDrivers = driverPositionsDeferred.sortedBy { it.position }
+                val sortedDrivers = driverPositionsDeferred.sortedBy { it.currentPosition }
                 DriversUiState.Success(sortedDrivers)
             } catch (e: Exception) {
                 //Log.e(TAG, "Failed to retrieve drivers: $e")
