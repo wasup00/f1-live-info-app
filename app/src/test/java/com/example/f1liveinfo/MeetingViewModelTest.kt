@@ -1,7 +1,7 @@
-import com.example.f1liveinfo.data.MeetingApiService
 import com.example.f1liveinfo.model.Meeting
-import com.example.f1liveinfo.ui.MeetingUiState
-import com.example.f1liveinfo.ui.MeetingViewModel
+import com.example.f1liveinfo.network.MeetingApiService
+import com.example.f1liveinfo.ui.screens.MeetingUiState
+import com.example.f1liveinfo.ui.screens.MeetingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

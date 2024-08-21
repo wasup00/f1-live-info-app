@@ -53,10 +53,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Meeting
-import com.example.f1liveinfo.ui.DriverViewModel
-import com.example.f1liveinfo.ui.DriversUiState
-import com.example.f1liveinfo.ui.MeetingUiState
-import com.example.f1liveinfo.ui.MeetingViewModel
+import com.example.f1liveinfo.ui.screens.DriverViewModel
+import com.example.f1liveinfo.ui.screens.DriversUiState
+import com.example.f1liveinfo.ui.screens.MeetingUiState
+import com.example.f1liveinfo.ui.screens.MeetingViewModel
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.pullRefresh
@@ -86,8 +86,8 @@ fun convertToColor(colorStr: String, alpha: Float = 1.0f): Color {
 @Composable
 fun F1App(
     modifier: Modifier = Modifier,
-    meetingViewModel: MeetingViewModel = viewModel(),
-    driverViewModel: DriverViewModel = viewModel(),
+    meetingViewModel: MeetingViewModel = viewModel(factory = MeetingViewModel.Factory),
+    driverViewModel: DriverViewModel = viewModel(factory = DriverViewModel.Factory),
 ) {
 
     //Hide status and navigation bar

@@ -1,8 +1,8 @@
-import com.example.f1liveinfo.data.DriverApiService
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Position
-import com.example.f1liveinfo.ui.DriverViewModel
-import com.example.f1liveinfo.ui.DriversUiState
+import com.example.f1liveinfo.network.DriverApiService
+import com.example.f1liveinfo.ui.screens.DriverViewModel
+import com.example.f1liveinfo.ui.screens.DriversUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
