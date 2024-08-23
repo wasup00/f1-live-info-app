@@ -13,10 +13,9 @@ import com.example.f1liveinfo.F1LiveInfoApplication
 import com.example.f1liveinfo.data.DriversRepository
 import com.example.f1liveinfo.data.PositionsRepository
 import com.example.f1liveinfo.model.Driver
+import com.example.f1liveinfo.utils.Utils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 private const val TAG = "DriverViewModel"
 
@@ -41,10 +40,7 @@ class DriverViewModel(
                     val latestPosition = positions.await()
                         .filter { it.driverNumber == driver.driverNumber }
                         .maxByOrNull {
-                            SimpleDateFormat(
-                                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
-                                Locale.getDefault()
-                            ).parse(it.date)
+                            Utils.formatStringToDate(date = it.date)
                         }
                     if (driver.startingPosition == null) {
                         val startingPosition =
