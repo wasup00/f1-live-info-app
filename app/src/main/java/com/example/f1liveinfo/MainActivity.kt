@@ -1,8 +1,6 @@
 package com.example.f1liveinfo
 
-import android.graphics.Color.parseColor
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,7 +21,6 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,9 +28,9 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -58,6 +55,7 @@ import com.example.f1liveinfo.ui.screens.DriversUiState
 import com.example.f1liveinfo.ui.screens.MeetingUiState
 import com.example.f1liveinfo.ui.screens.MeetingViewModel
 import com.example.f1liveinfo.ui.theme.F1LiveInfoTheme
+import com.example.f1liveinfo.utils.Utils
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
@@ -71,16 +69,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             F1LiveInfoTheme {
-                F1App()
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    F1App()
+                }
             }
         }
     }
-}
-
-fun convertToColor(colorStr: String, alpha: Float = 1.0f): Color {
-    val hexStr = "#${colorStr}"
-    val colorInt = parseColor(hexStr)
-    return Color(colorInt).copy(alpha = alpha)
 }
 
 @Composable
@@ -95,14 +91,28 @@ fun F1App(
 //    systemUiController.isStatusBarVisible = false
 //    systemUiController.isNavigationBarVisible = false
 
-    Log.d(TAG, "Drivers: ${driverViewModel.driversUiState}")
+    //Log.d(TAG, "Drivers: ${driverViewModel.driversUiState}")
 
+    F1App(
+        meetingUiState = meetingViewModel.meetingUiState,
+        driversUiState = driverViewModel.driversUiState,
+        onRefresh = { Utils.refreshData(meetingViewModel, driverViewModel) },
+    )
+}
+
+@Composable
+fun F1App(
+    meetingUiState: MeetingUiState,
+    driversUiState: DriversUiState,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             F1TopBar(
-                meetingViewModel = meetingViewModel,
-                driverViewModel = driverViewModel
+                meetingUiState = meetingUiState,
+                driversUiState = driversUiState
             )
         },
     ) { innerPadding ->
@@ -112,11 +122,10 @@ fun F1App(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             DriversScreen(
-                driversUiState = driverViewModel.driversUiState,
-                onRefresh = { refreshData(meetingViewModel, driverViewModel) }
+                driversUiState = driversUiState,
+                onRefresh = onRefresh
             )
         }
-
     }
 }
 
@@ -141,12 +150,10 @@ fun DriversScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun F1TopBar(
-    meetingViewModel: MeetingViewModel,
-    driverViewModel: DriverViewModel,
+    meetingUiState: MeetingUiState,
+    driversUiState: DriversUiState,
     modifier: Modifier = Modifier
 ) {
-    val meetingUiState = meetingViewModel.meetingUiState
-    val driversUiState = driverViewModel.driversUiState
 
     // Check if either meeting or driver data is loading
     val isLoading =
@@ -183,24 +190,6 @@ fun F1TopBar(
                 )
             }
         },*/
-        actions = {
-            IconButton(
-                onClick = {
-                    refreshData(
-                        meetingViewModel = meetingViewModel,
-                        driverViewModel = driverViewModel
-                    )
-                },
-                enabled = !isLoading,
-
-                ) {
-                Icon(
-                    imageVector = Icons.Filled.Refresh,
-                    contentDescription = "Refresh race data",
-                    tint = Color.Black
-                )
-            }
-        }
     )
 }
 
@@ -241,7 +230,8 @@ fun RefreshableListOfDrivers(
             }
         }
         PullRefreshIndicator(
-            refreshing = refreshing, state = state,
+            refreshing = refreshing,
+            state = state,
             modifier = Modifier
                 .align(Alignment.TopCenter)
         )
@@ -251,7 +241,7 @@ fun RefreshableListOfDrivers(
 @Composable
 fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
-    val teamColor = convertToColor(driver.teamColor, 0.9f)
+    val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
     Card(
         colors = CardDefaults.cardColors(teamColor),
@@ -295,11 +285,12 @@ fun PositionCard(driver: Driver, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val difference = if (driver.startingPosition != null || driver.currentPosition != null) {
-            driver.startingPosition?.minus(driver.currentPosition!!)!!
-        } else {
-            40
-        }
+        val difference =
+            if (driver.startingPosition != null || driver.currentPosition != null) {
+                driver.startingPosition?.minus(driver.currentPosition!!)!!
+            } else {
+                40
+            }
         val color = when {
             difference > 0 -> Color.Green
             difference < 0 -> Color.Red
@@ -359,20 +350,14 @@ fun ErrorScreen(modifierDriver: Modifier = Modifier, modifierMeeting: Modifier =
     }
 }
 
-private fun refreshData(meetingViewModel: MeetingViewModel, driverViewModel: DriverViewModel) {
-    meetingViewModel.getMeetingData()
-    driverViewModel.getDriversData()
-}
 
 @Preview(
     showBackground = true,
 )
 @Composable
 fun F1AppPreviewOnSuccess() {
-    val meetingViewModel: MeetingViewModel = viewModel()
-    val driverViewModel: DriverViewModel = viewModel()
 
-    meetingViewModel.meetingUiState = MeetingUiState.Success(
+    val meetingUiState = MeetingUiState.Success(
         Meeting(
             meetingName = "Belgian Grand Prix",
             location = "Spa-Francorchamps",
@@ -383,7 +368,7 @@ fun F1AppPreviewOnSuccess() {
         )
     )
 
-    driverViewModel.driversUiState = DriversUiState.Success(
+    val driversUiState = DriversUiState.Success(
         listOf(
             Driver(
                 lastName = "Verstappen",
@@ -568,48 +553,29 @@ fun F1AppPreviewOnSuccess() {
             )
         )
     )
-
-    F1LiveInfoTheme {
-        F1App(
-            meetingViewModel = meetingViewModel,
-            driverViewModel = driverViewModel
-        )
-    }
+    F1App(meetingUiState = meetingUiState, driversUiState = driversUiState, onRefresh = { })
 }
 
-//@Preview(
-//    showBackground = true,
-//)
-//@Composable
-//fun F1AppPreviewOnLoading() {
-//    val meetingViewModel: MeetingViewModel = viewModel()
-//    val driverViewModel: DriverViewModel = viewModel()
-//
-//    meetingViewModel.meetingUiState = MeetingUiState.Loading
-//    driverViewModel.driversUiState = DriversUiState.Loading
-//
-//    F1LiveInfoTheme {
-//        F1App(
-//            meetingViewModel = meetingViewModel,
-//            driverViewModel = driverViewModel
-//        )
-//    }
-//}
-//
-//@Preview(
-//    showBackground = true,
-//)
-//@Composable
-//fun F1AppPreviewOnError() {
-//    val meetingViewModel: MeetingViewModel = viewModel()
-//    val driverViewModel: DriverViewModel = viewModel()
-//
-//    meetingViewModel.meetingUiState = MeetingUiState.Error
-//    driverViewModel.driversUiState = DriversUiState.Error
-//    F1LiveInfoTheme {
-//        F1App(
-//            meetingViewModel = meetingViewModel,
-//            driverViewModel = driverViewModel
-//        )
-//    }
-//}
+/*@Preview(
+    showBackground = true,
+)
+@Composable
+fun F1AppPreviewOnLoading() {
+
+    val meetingUiState = MeetingUiState.Loading
+    val driversUiState = DriversUiState.Loading
+
+    F1App(meetingUiState = meetingUiState, driversUiState = driversUiState, onRefresh = { })
+
+}
+
+@Preview(
+    showBackground = true,
+)
+@Composable
+fun F1AppPreviewOnError() {
+    val meetingUiState = MeetingUiState.Error
+    val driversUiState = DriversUiState.Error
+    F1App(meetingUiState = meetingUiState, driversUiState = driversUiState, onRefresh = { })
+
+}*/
