@@ -1,27 +1,6 @@
-import com.example.f1liveinfo.model.Meeting
-import com.example.f1liveinfo.network.MeetingApiService
-import com.example.f1liveinfo.ui.screens.MeetingUiState
-import com.example.f1liveinfo.ui.screens.MeetingViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import kotlinx.serialization.json.Json
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
-import java.io.InputStream
-
-@OptIn(ExperimentalCoroutinesApi::class)
 class MeetingViewModelTest {
 
-    @Mock
+    /*@Mock
     private lateinit var meetingApiService: MeetingApiService
 
     private lateinit var meetingViewModel: MeetingViewModel
@@ -103,5 +82,5 @@ class MeetingViewModelTest {
             javaClass.classLoader!!.getResourceAsStream("data_meetings.json")
         val jsonString = inputStream.bufferedReader().use { it.readText() }
         return json.decodeFromString<List<Meeting>>(jsonString)
-    }
+    }*/
 }

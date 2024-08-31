@@ -8,7 +8,7 @@ import retrofit2.http.Query
 interface PositionApiService {
     @GET("position")
     suspend fun getPositions(
-        @Query("session_key") sessionKey: String = LATEST,
+        @Query("session_key") sessionKey: String? = LATEST,
         @Query("driver_number") driverNumber: Int? = null
     ): List<Position>
 }

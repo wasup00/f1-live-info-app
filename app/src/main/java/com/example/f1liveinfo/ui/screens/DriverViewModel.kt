@@ -1,5 +1,6 @@
 package com.example.f1liveinfo.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,56 +11,48 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.f1liveinfo.F1LiveInfoApplication
-import com.example.f1liveinfo.data.DriversRepository
-import com.example.f1liveinfo.data.PositionsRepository
+import com.example.f1liveinfo.data.DriverRepository
+import com.example.f1liveinfo.data.PositionRepository
 import com.example.f1liveinfo.model.Driver
-import com.example.f1liveinfo.utils.Utils
+import com.example.f1liveinfo.utils.Utils.LATEST
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 private const val TAG = "DriverViewModel"
 
 class DriverViewModel(
-    private val driversRepository: DriversRepository,
-    private val positionsRepository: PositionsRepository
+    private val driverRepository: DriverRepository,
+    private val positionRepository: PositionRepository
 ) : ViewModel() {
 
     var driversUiState: DriversUiState by mutableStateOf(DriversUiState.Loading)
+        private set
 
     init {
         getDriversData()
     }
 
-    fun getDriversData() {
+    fun getDriversData(sessionKey: String? = LATEST) {
         driversUiState = DriversUiState.Loading
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             driversUiState = try {
-                val drivers = async { driversRepository.getDrivers() }
-                val positions = async { positionsRepository.getPositions() }
-                val driverPositionsDeferred = drivers.await().map { driver ->
-                    val latestPosition = positions.await()
-                        .filter { it.driverNumber == driver.driverNumber }
-                        .maxByOrNull {
-                            Utils.formatStringToDate(date = it.date)
-                        }
-                    if (driver.startingPosition == null) {
-                        val startingPosition =
-                            positions.await().firstOrNull { it.driverNumber == driver.driverNumber }
-                        if (startingPosition == null) {
-                            driver.startingPosition = 0
-                        } else {
-                            driver.startingPosition = startingPosition.position
-                        }
-                    }
-                    //Log.d(TAG, "position of driver number ${driver.driverNumber}: $latestPosition")
-                    println("position of driver number ${driver.driverNumber}: $latestPosition")
-                    driver.currentPosition = latestPosition?.position!!
+                val driversDeferred = async { driverRepository.getDrivers(sessionKey = sessionKey) }
+                val positionsDeferred =
+                    async { positionRepository.getPositions(sessionKey = sessionKey) }
+                val drivers = driversDeferred.await()
+                val positions = positionsDeferred.await()
+
+                val driverPositions = drivers.map { driver ->
+                    val driverPositions =
+                        positions.filter { it.driverNumber == driver.driverNumber }
+                    driver.startingPosition = driverPositions.firstOrNull()?.position ?: 0
+                    driver.currentPosition = driverPositions.maxByOrNull { it.date }?.position ?: 0
                     driver
                 }
-                val sortedDrivers = driverPositionsDeferred.sortedBy { it.currentPosition }
-                DriversUiState.Success(sortedDrivers)
+                DriversUiState.Success(driverPositions.sortedBy { it.currentPosition })
             } catch (e: Exception) {
-                //Log.e(TAG, "Failed to retrieve drivers: $e")
+                Log.e(TAG, "Failed to retrieve drivers: $e")
                 DriversUiState.Error
             }
         }
@@ -69,11 +62,11 @@ class DriverViewModel(
         val Factory: Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as F1LiveInfoApplication)
-                val driversRepository = application.container.driversRepository
-                val positionsRepository = application.container.positionsRepository
+                val driverRepository = application.container.driverRepository
+                val positionRepository = application.container.positionRepository
                 DriverViewModel(
-                    driversRepository = driversRepository,
-                    positionsRepository = positionsRepository
+                    driverRepository = driverRepository,
+                    positionRepository = positionRepository
                 )
             }
         }
@@ -82,6 +75,6 @@ class DriverViewModel(
 
 sealed interface DriversUiState {
     data class Success(val drivers: List<Driver>) : DriversUiState
-    data object Error : DriversUiState
-    data object Loading : DriversUiState
+    object Error : DriversUiState
+    object Loading : DriversUiState
 }

@@ -3,11 +3,6 @@ package com.example.f1liveinfo.utils
 import android.graphics.Color.parseColor
 import androidx.compose.ui.graphics.Color
 import com.example.f1liveinfo.ui.screens.DriverViewModel
-import com.example.f1liveinfo.ui.screens.MeetingViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import android.util.Log
 
 
 object Utils {
@@ -40,24 +35,14 @@ object Utils {
      * @param meetingViewModel The ViewModel responsible for managing meeting data.
      * @param driverViewModel The ViewModel responsible for managing driver data.
      */
-    fun refreshData(meetingViewModel: MeetingViewModel, driverViewModel: DriverViewModel) {
-        meetingViewModel.getMeetingData()
+    fun refreshMeetingAndDriverData(driverViewModel: DriverViewModel) {
         driverViewModel.getDriversData()
     }
 
-    // Utility function to format date
-    fun formatStringToDate(date: String): Date {
-        val formatter = defaultFormatter()
-        println("formatDate: $date")
-        val parsedDate = formatter.parse(date)
-        if (parsedDate != null) {
-            return parsedDate
-        }
-        Log.e("formatDate", "Error parsing date: $date")
-        return Date(0)
-    }
-
-    private fun defaultFormatter(pattern: String = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"): SimpleDateFormat {
-        return SimpleDateFormat(pattern, Locale.getDefault())
+    fun fetchDriverData(
+        driverViewModel: DriverViewModel,
+        sessionKey: String
+    ) {
+        driverViewModel.getDriversData(sessionKey = sessionKey)
     }
 }

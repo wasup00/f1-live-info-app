@@ -8,5 +8,5 @@ import retrofit2.http.Query
 
 interface DriverApiService {
     @GET("drivers")
-    suspend fun getDrivers(@Query("session_key") sessionKey: String = LATEST): List<Driver>
+    suspend fun getDrivers(@Query("session_key") sessionKey: String? = LATEST): List<Driver>
 }
