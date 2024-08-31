@@ -1,28 +1,46 @@
-import com.example.f1liveinfo.model.Driver
-import com.example.f1liveinfo.model.Position
-import com.example.f1liveinfo.network.DriverApiService
+package com.example.f1liveinfo
+
+import com.example.f1liveinfo.fake.data.FakeDriverDataSource
+import com.example.f1liveinfo.fake.repository.FakeNetworkDriverRepository
+import com.example.f1liveinfo.fake.repository.FakeNetworkPositionRepository
+import com.example.f1liveinfo.rules.TestDispatcherRule
 import com.example.f1liveinfo.ui.screens.DriverViewModel
 import com.example.f1liveinfo.ui.screens.DriversUiState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import kotlinx.serialization.json.Json
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.mockito.MockitoAnnotations
-import java.io.InputStream
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DriverViewModelTest {
 
-    @Mock
+    @get:Rule
+    val testDispatcher = TestDispatcherRule()
+
+    @Test
+    fun driverViewModel_getDriversData_verifyUiStateSuccess() = runTest {
+        val driverViewModel = DriverViewModel(
+            driverRepository = FakeNetworkDriverRepository(),
+            positionRepository = FakeNetworkPositionRepository()
+        )
+
+        testDispatcher.advanceUntilIdle()
+
+        assertEquals(
+            DriversUiState.Success(FakeDriverDataSource.expectedDriversAndPositions),
+            driverViewModel.driversUiState
+        )
+    }
+
+    @Test
+    fun driverViewModel_getDriversData_verifyUiStateError() = runTest {
+        val driverViewModel = DriverViewModel(
+            driverRepository = FakeNetworkDriverRepository(),
+            positionRepository = FakeNetworkPositionRepository()
+        )
+        assertEquals(DriversUiState.Error, driverViewModel.driversUiState)
+    }
+
+    /*@Mock
     private lateinit var driverApiService: DriverApiService
 
     private lateinit var driverViewModel: DriverViewModel
@@ -261,5 +279,5 @@ class DriverViewModelTest {
                 currentPosition = 3
             )
         ).sortedBy { it.currentPosition }
-    }
+    }*/
 }
