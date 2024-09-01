@@ -54,12 +54,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.model.Session
+import com.example.f1liveinfo.model.SessionName
+import com.example.f1liveinfo.model.SessionType
 import com.example.f1liveinfo.ui.screens.DriverViewModel
 import com.example.f1liveinfo.ui.screens.DriversUiState
 import com.example.f1liveinfo.ui.screens.MeetingUiState
@@ -107,34 +110,52 @@ fun F1App(
 
     F1App(
         meetingUiState = meetingViewModel.meetingUiState,
-        driverViewModel = driverViewModel,
-        onRefresh = { Utils.refreshMeetingAndDriverData(driverViewModel) },
-        fetchSession = { meetingViewModel.getSessionData() }
+        driversUiState = driverViewModel.driversUiState,
+        onRefresh = {
+            driverViewModel.getDriversData()
+            meetingViewModel.getMeetingData()
+        },
+        fetchSession = { meetingViewModel.getSessionsData() },
+        modifyMeetingSessionKey = { sessionKey ->
+            meetingViewModel.modifyMeetingSessionKey(
+                sessionKey = sessionKey
+            )
+        },
+        getDriversForSession = { sessionKey ->
+            driverViewModel.getDriversData(sessionKey = sessionKey.toString())
+        },
     )
 }
 
 @Composable
 fun F1App(
     meetingUiState: MeetingUiState,
-    driverViewModel: DriverViewModel,
+    driversUiState: DriversUiState,
     onRefresh: () -> Unit,
     fetchSession: () -> Unit,
+    modifyMeetingSessionKey: (Int) -> Unit,
+    getDriversForSession: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val driversUiState = driverViewModel.driversUiState
+    var isRace = false
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             when (meetingUiState) {
                 is MeetingUiState.Success -> {
+                    val meeting = meetingUiState.meeting
+                    isRace =
+                        meeting.sessions.first { it.sessionKey == meeting.sessionKey }.sessionName == SessionName.Race
                     SessionDrawerList(
-                        driverViewModel = driverViewModel,
                         sessions = meetingUiState.meeting.sessions,
-                        closeDrawer = { scope.launch { drawerState.close() } }
+                        closeDrawer = { scope.launch { drawerState.close() } },
+                        modifyMeetingSessionKey = modifyMeetingSessionKey,
+                        getDriversForSession = getDriversForSession
+
                     )
                 }
 
@@ -159,6 +180,7 @@ fun F1App(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 DriversScreen(
+                    isRace = isRace,
                     driversUiState = driversUiState,
                     onRefresh = onRefresh
                 )
@@ -169,6 +191,7 @@ fun F1App(
 
 @Composable
 fun DriversScreen(
+    isRace: Boolean,
     driversUiState: DriversUiState,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -176,6 +199,7 @@ fun DriversScreen(
     when (driversUiState) {
         is DriversUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
         is DriversUiState.Success -> RefreshableListOfDrivers(
+            isRace = isRace,
             drivers = driversUiState.drivers,
             onRefresh = onRefresh,
             modifier = modifier.fillMaxWidth()
@@ -231,14 +255,16 @@ fun F1TopBar(
 @Composable
 fun SessionDrawerList(
     sessions: List<Session>,
-    driverViewModel: DriverViewModel,
     modifier: Modifier = Modifier,
-    closeDrawer: () -> Unit
+    closeDrawer: () -> Unit,
+    modifyMeetingSessionKey: (Int) -> Unit,
+    getDriversForSession: (Int) -> Unit
 ) {
     ModalDrawerSheet(modifier = modifier.fillMaxHeight()) {
         Spacer(modifier = Modifier.padding(5.dp))
         LazyColumn(modifier = modifier) {
             items(sessions) { session ->
+                val sessionKey = session.sessionKey
                 NavigationDrawerItem(
                     label = {
                         Text(
@@ -248,10 +274,8 @@ fun SessionDrawerList(
                     },
                     selected = true,
                     onClick = {
-                        Utils.fetchDriverData(
-                            driverViewModel = driverViewModel,
-                            sessionKey = session.sessionKey.toString()
-                        )
+                        getDriversForSession(sessionKey)
+                        modifyMeetingSessionKey(sessionKey)
                         closeDrawer()
                     },
                     shape = MaterialTheme.shapes.small,
@@ -284,6 +308,7 @@ fun MeetingContent(meeting: Meeting, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RefreshableListOfDrivers(
+    isRace: Boolean,
     drivers: List<Driver>,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -295,7 +320,7 @@ fun RefreshableListOfDrivers(
             modifier = Modifier.pullRefresh(state),
         ) {
             items(drivers) { driver ->
-                DriverCard(driver = driver)
+                DriverCard(isRace = isRace, driver = driver)
             }
         }
         PullRefreshIndicator(
@@ -308,7 +333,7 @@ fun RefreshableListOfDrivers(
 }
 
 @Composable
-fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
+fun DriverCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {
 
     val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
@@ -322,6 +347,10 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
             modifier = modifier.fillMaxSize()
         ) {
             PositionCard(
+                modifier = modifier
+                    .padding(start = 8.dp, end = 8.dp)
+                    .fillMaxHeight(),
+                isRace = isRace,
                 driver = driver
             )
             AsyncImage(
@@ -348,46 +377,63 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PositionCard(driver: Driver, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(start = 8.dp, top = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        val difference =
-            if (driver.startingPosition != null || driver.currentPosition != null) {
-                driver.startingPosition?.minus(driver.currentPosition!!)!!
-            } else {
-                40
+fun PositionCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {
+    if (isRace) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            val difference =
+                if (driver.startingPosition != null || driver.currentPosition != null) {
+                    driver.startingPosition?.minus(driver.currentPosition!!)!!
+                } else {
+                    40
+                }
+            val color = when {
+                difference > 0 -> Color.Green
+                difference < 0 -> Color.Red
+                else -> Color.Black
             }
-        val color = when {
-            difference > 0 -> Color.Green
-            difference < 0 -> Color.Red
-            else -> Color.Black
+            val icon = when {
+                difference > 5 -> Icons.Filled.KeyboardDoubleArrowUp
+                difference > 0 -> Icons.Filled.ArrowDropUp
+                difference < -5 -> Icons.Filled.KeyboardDoubleArrowDown
+                difference < 0 -> Icons.Filled.ArrowDropDown
+                else -> Icons.Filled.Remove
+            }
+            Text(
+                text = driver.currentPosition.toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.Black,
+            )
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = modifier.size(15.dp)
+            )
+            Text(
+                text = difference.absoluteValue.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Black,
+            )
         }
-        val icon = when {
-            difference > 5 -> Icons.Filled.KeyboardDoubleArrowUp
-            difference > 0 -> Icons.Filled.ArrowDropUp
-            difference < -5 -> Icons.Filled.KeyboardDoubleArrowDown
-            difference < 0 -> Icons.Filled.ArrowDropDown
-            else -> Icons.Filled.Remove
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                modifier = modifier,
+                text = driver.currentPosition.toString(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.Black,
+            )
         }
-        Text(
-            text = driver.currentPosition.toString(),
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color.Black,
-        )
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = modifier.size(15.dp)
-        )
-        Text(
-            text = difference.absoluteValue.toString(),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.Black,
-        )
     }
 }
 
@@ -421,212 +467,249 @@ fun ErrorScreen(modifierDriver: Modifier = Modifier, modifierMeeting: Modifier =
     }
 }
 
-//
-//@Preview(
-//    showBackground = true,
-//)
-//@Composable
-//fun F1AppPreviewOnSuccess() {
-//
-//    val meetingUiState = MeetingUiState.Success(
-//        Meeting(
-//            meetingKey = 1242,
-//            meetingName = "Belgian Grand Prix",
-//            location = "Spa-Francorchamps",
-//            countryName = "Belgium",
-//            dateStart = "2024-07-26T11:30:00+00:00",
-//            gmtOffset = "02:00:00",
-//            year = 2024
-//        )
-//    )
-//
-//    val driversUiState = DriversUiState.Success(
-//        listOf(
+
+@Preview(
+    showBackground = true,
+)
+@Composable
+fun F1AppPreviewOnSuccess() {
+
+    val session = Session(
+        sessionKey = 1,
+        sessionName = SessionName.Practice_1,
+        meetingKey = 1242,
+        sessionType = SessionType.Practice
+    )
+
+    val meetingUiState = MeetingUiState.Success(
+        Meeting(
+            meetingKey = 1242,
+            meetingName = "Belgian Grand Prix",
+            location = "Spa-Francorchamps",
+            countryName = "Belgium",
+            dateStart = "2024-07-26T11:30:00+00:00",
+            gmtOffset = "02:00:00",
+            year = 2024,
+            sessionKey = 1,
+            sessions = listOf(session)
+        )
+    )
+
+    val driversUiState = DriversUiState.Success(
+        listOf(
+            Driver(
+                lastName = "Verstappen",
+                firstName = "Max",
+                fullName = "Max Verstappen",
+                countryCode = "NED",
+                teamName = "Red Bull Racing",
+                driverNumber = 1,
+                teamColor = "3671C6",
+                currentPosition = 1,
+                startingPosition = 1
+            ), Driver(
+                lastName = "Sargeant",
+                firstName = "Logan",
+                fullName = "Logan Sargeant",
+                countryCode = "USA",
+                teamName = "Williams",
+                driverNumber = 2,
+                teamColor = "64C4FF",
+                currentPosition = 2,
+                startingPosition = 10
+            ),
 //            Driver(
-//                lastName = "Verstappen",
-//                firstName = "Max",
-//                countryCode = "NED",
-//                teamName = "Red Bull Racing",
-//                driverNumber = 1,
-//                teamColor = "3671C6",
-//                currentPosition = 1,
-//                startingPosition = 1
-//            ), Driver(
-//                lastName = "Sargeant",
-//                firstName = "Logan",
-//                countryCode = "USA",
-//                teamName = "Williams",
-//                driverNumber = 2,
-//                teamColor = "64C4FF",
-//                currentPosition = 2,
-//                startingPosition = 10
-//            ), Driver(
 //                lastName = "Ricciardo",
 //                firstName = "Daniel",
+//                fullName = "Daniel Ricciardo",
 //                countryCode = "AUS",
 //                teamName = "RB",
 //                driverNumber = 3,
 //                teamColor = "6692FF",
 //                currentPosition = 3,
 //                startingPosition = 2
-//            ), Driver(
-//                lastName = "Norris",
-//                firstName = "Lando",
-//                countryCode = "GBR",
-//                teamName = "McLaren",
-//                driverNumber = 4,
-//                teamColor = "FF8000",
-//                currentPosition = 4,
-//                startingPosition = 3
-//            ), Driver(
-//                lastName = "Gasly",
-//                firstName = "Pierre",
-//                countryCode = "FRA",
-//                teamName = "Alpine",
-//                driverNumber = 10,
-//                teamColor = "0093CC",
-//                currentPosition = 5,
-//                startingPosition = 15
-//            ), Driver(
-//                lastName = "Perez",
-//                firstName = "Sergio",
-//                countryCode = "MEX",
-//                teamName = "Red Bull Racing",
-//                driverNumber = 11,
-//                teamColor = "3671C6",
-//                currentPosition = 6,
-//                startingPosition = 13
-//            ), Driver(
-//                lastName = "Alonso",
-//                firstName = "Fernando",
-//                countryCode = "ESP",
-//                teamName = "Aston Martin",
-//                driverNumber = 14,
-//                teamColor = "229971",
-//                currentPosition = 7,
-//                startingPosition = 12
-//            ), Driver(
-//                lastName = "Leclerc",
-//                firstName = "Charles",
-//                countryCode = "MON",
-//                teamName = "Ferrari",
-//                driverNumber = 16,
-//                teamColor = "E80020",
-//                currentPosition = 8,
-//                startingPosition = 19
-//            ), Driver(
-//                lastName = "Stroll",
-//                firstName = "Lance",
-//                countryCode = "CAN",
-//                teamName = "Aston Martin",
-//                driverNumber = 18,
-//                teamColor = "229971",
-//                currentPosition = 9,
-//                startingPosition = 20
-//            ), Driver(
-//                lastName = "Magnussen",
-//                firstName = "Kevin",
-//                countryCode = "DEN",
-//                teamName = "Haas F1 Team",
-//                driverNumber = 20,
-//                teamColor = "B6BABD",
-//                currentPosition = 10,
-//                startingPosition = 18
-//            ), Driver(
-//                lastName = "Tsunoda",
-//                firstName = "Yuki",
-//                countryCode = "JPN",
-//                teamName = "RB",
-//                driverNumber = 22,
-//                teamColor = "6692FF",
-//                currentPosition = 11,
-//                startingPosition = 17
-//            ), Driver(
-//                lastName = "Albon",
-//                firstName = "Alexander",
-//                countryCode = "THA",
-//                teamName = "Williams",
-//                driverNumber = 23,
-//                teamColor = "64C4FF",
-//                currentPosition = 12,
-//                startingPosition = 16
-//            ), Driver(
-//                lastName = "Zhou",
-//                firstName = "Guanyu",
-//                countryCode = "CHN",
-//                teamName = "Kick Sauber",
-//                driverNumber = 24,
-//                teamColor = "52E252",
-//                currentPosition = 13,
-//                startingPosition = 14
-//            ), Driver(
-//                lastName = "Hulkenberg",
-//                firstName = "Nico",
-//                countryCode = "GER",
-//                teamName = "Haas F1 Team",
-//                driverNumber = 27,
-//                teamColor = "B6BABD",
-//                currentPosition = 14,
-//                startingPosition = 13
-//            ), Driver(
-//                lastName = "Ocon",
-//                firstName = "Esteban",
-//                countryCode = "FRA",
-//                teamName = "Alpine",
-//                driverNumber = 31,
-//                teamColor = "0093CC",
-//                currentPosition = 15,
-//                startingPosition = 7
-//            ), Driver(
-//                lastName = "Hamilton",
-//                firstName = "Lewis",
-//                countryCode = "GBR",
-//                teamName = "Mercedes",
-//                driverNumber = 44,
-//                teamColor = "27F4D2",
-//                currentPosition = 16,
-//                startingPosition = 8
-//            ), Driver(
-//                lastName = "Sainz",
-//                firstName = "Carlos",
-//                countryCode = "ESP",
-//                teamName = "Ferrari",
-//                driverNumber = 55,
-//                teamColor = "E80020",
-//                currentPosition = 17,
-//                startingPosition = 4
-//            ), Driver(
-//                lastName = "Russell",
-//                firstName = "George",
-//                countryCode = "GBR",
-//                teamName = "Mercedes",
-//                driverNumber = 63,
-//                teamColor = "27F4D2",
-//                currentPosition = 18,
-//                startingPosition = 5
-//            ), Driver(
-//                lastName = "Bottas",
-//                firstName = "Valtteri",
-//                countryCode = "FIN",
-//                teamName = "Kick Sauber",
-//                driverNumber = 77,
-//                teamColor = "52E252",
-//                currentPosition = 19,
-//                startingPosition = 3
-//            ), Driver(
-//                lastName = "Piastri",
-//                firstName = "Oscar",
-//                countryCode = "AUS",
-//                teamName = "McLaren",
-//                driverNumber = 81,
-//                teamColor = "FF8000",
-//                currentPosition = 20,
-//                startingPosition = 1
-//            )
-//        )
-//    )
-//    F1App(meetingUiState = meetingUiState, driversUiState = driversUiState, onRefresh = { })
-//}
+//            ),
+            Driver(
+                lastName = "Norris",
+                firstName = "Lando",
+                fullName = "Lando Norris",
+                countryCode = "GBR",
+                teamName = "McLaren",
+                driverNumber = 4,
+                teamColor = "FF8000",
+                currentPosition = 4,
+                startingPosition = 3
+            ), Driver(
+                lastName = "Gasly",
+                firstName = "Pierre",
+                fullName = "Pierre Gasly",
+                countryCode = "FRA",
+                teamName = "Alpine",
+                driverNumber = 10,
+                teamColor = "0093CC",
+                currentPosition = 5,
+                startingPosition = 15
+            ), Driver(
+                lastName = "Perez",
+                firstName = "Sergio",
+                fullName = "Sergio Perez",
+                countryCode = "MEX",
+                teamName = "Red Bull Racing",
+                driverNumber = 11,
+                teamColor = "3671C6",
+                currentPosition = 6,
+                startingPosition = 13
+            ), Driver(
+                lastName = "Alonso",
+                firstName = "Fernando",
+                fullName = "Fernando Alonso",
+                countryCode = "ESP",
+                teamName = "Aston Martin",
+                driverNumber = 14,
+                teamColor = "229971",
+                currentPosition = 7,
+                startingPosition = 12
+            ), Driver(
+                lastName = "Leclerc",
+                firstName = "Charles",
+                fullName = "Charles Leclerc",
+                countryCode = "MON",
+                teamName = "Ferrari",
+                driverNumber = 16,
+                teamColor = "E80020",
+                currentPosition = 8,
+                startingPosition = 19
+            ), Driver(
+                lastName = "Stroll",
+                firstName = "Lance",
+                fullName = "Lance Stroll",
+                countryCode = "CAN",
+                teamName = "Aston Martin",
+                driverNumber = 18,
+                teamColor = "229971",
+                currentPosition = 9,
+                startingPosition = 20
+            ), Driver(
+                lastName = "Magnussen",
+                firstName = "Kevin",
+                fullName = "Kevin Magnussen",
+                countryCode = "DEN",
+                teamName = "Haas F1 Team",
+                driverNumber = 20,
+                teamColor = "B6BABD",
+                currentPosition = 10,
+                startingPosition = 18
+            ), Driver(
+                lastName = "Tsunoda",
+                firstName = "Yuki",
+                fullName = "Yuki Tsunoda",
+                countryCode = "JPN",
+                teamName = "RB",
+                driverNumber = 22,
+                teamColor = "6692FF",
+                currentPosition = 11,
+                startingPosition = 17
+            ), Driver(
+                lastName = "Albon",
+                firstName = "Alexander",
+                fullName = "Alexander Albon",
+                countryCode = "THA",
+                teamName = "Williams",
+                driverNumber = 23,
+                teamColor = "64C4FF",
+                currentPosition = 12,
+                startingPosition = 16
+            ), Driver(
+                lastName = "Zhou",
+                firstName = "Guanyu",
+                fullName = "Guanyu Zhou",
+                countryCode = "CHN",
+                teamName = "Kick Sauber",
+                driverNumber = 24,
+                teamColor = "52E252",
+                currentPosition = 13,
+                startingPosition = 14
+            ), Driver(
+                lastName = "Hulkenberg",
+                firstName = "Nico",
+                fullName = "Nico Hulkenberg",
+                countryCode = "GER",
+                teamName = "Haas F1 Team",
+                driverNumber = 27,
+                teamColor = "B6BABD",
+                currentPosition = 14,
+                startingPosition = 13
+            ), Driver(
+                lastName = "Ocon",
+                firstName = "Esteban",
+                fullName = "Esteban Ocon",
+                countryCode = "FRA",
+                teamName = "Alpine",
+                driverNumber = 31,
+                teamColor = "0093CC",
+                currentPosition = 15,
+                startingPosition = 7
+            ), Driver(
+                lastName = "Hamilton",
+                firstName = "Lewis",
+                fullName = "Lewis Hamilton",
+                countryCode = "GBR",
+                teamName = "Mercedes",
+                driverNumber = 44,
+                teamColor = "27F4D2",
+                currentPosition = 16,
+                startingPosition = 8
+            ), Driver(
+                lastName = "Sainz",
+                firstName = "Carlos",
+                fullName = "Carlos Sainz",
+                countryCode = "ESP",
+                teamName = "Ferrari",
+                driverNumber = 55,
+                teamColor = "E80020",
+                currentPosition = 17,
+                startingPosition = 4
+            ), Driver(
+                lastName = "Russell",
+                firstName = "George",
+                fullName = "George Russell",
+                countryCode = "GBR",
+                teamName = "Mercedes",
+                driverNumber = 63,
+                teamColor = "27F4D2",
+                currentPosition = 18,
+                startingPosition = 5
+            ), Driver(
+                lastName = "Bottas",
+                firstName = "Valtteri",
+                fullName = "Valtteri Bottas",
+                countryCode = "FIN",
+                teamName = "Kick Sauber",
+                driverNumber = 77,
+                teamColor = "52E252",
+                currentPosition = 19,
+                startingPosition = 3
+            ), Driver(
+                lastName = "Piastri",
+                firstName = "Oscar",
+                fullName = "Oscar Piastri",
+                countryCode = "AUS",
+                teamName = "McLaren",
+                driverNumber = 81,
+                teamColor = "FF8000",
+                currentPosition = 20,
+                startingPosition = 1
+            )
+        )
+    )
+    F1App(
+        meetingUiState = meetingUiState,
+        driversUiState = driversUiState,
+        onRefresh = { },
+        fetchSession = { },
+        modifyMeetingSessionKey = { },
+        getDriversForSession = { })
+}
 
 /*@Preview(
     showBackground = true,

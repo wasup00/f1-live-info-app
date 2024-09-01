@@ -10,6 +10,7 @@ private const val TAG = "SessionsRepository"
 interface SessionRepository {
     suspend fun getSessions(): List<Session>
     suspend fun getSessions(meetingKey: Int? = null, sessionKey: Int? = null): List<Session>
+    suspend fun getSessions(sessionKey: String): List<Session>
     //suspend fun getSessions(sessionKey: Int): Session
 }
 
@@ -27,4 +28,7 @@ class NetworkSessionRepository(
         }
         return sessionApiService.getSessions(meetingKey = meetingKey.toString())
     }
+
+    override suspend fun getSessions(sessionKey: String): List<Session> =
+        sessionApiService.getSessions(sessionKey = sessionKey)
 }

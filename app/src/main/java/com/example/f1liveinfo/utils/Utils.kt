@@ -2,7 +2,6 @@ package com.example.f1liveinfo.utils
 
 import android.graphics.Color.parseColor
 import androidx.compose.ui.graphics.Color
-import com.example.f1liveinfo.ui.screens.DriverViewModel
 
 
 object Utils {
@@ -24,25 +23,5 @@ object Utils {
         val hexStr = "#${colorStr}"
         val colorInt = parseColor(hexStr)
         return Color(colorInt).copy(alpha = alpha)
-    }
-
-    /**
-     * Refreshes the data for meetings and drivers.
-     *
-     * This function retrieves the latest meeting and driver data by calling* `getMeetingData` on the provided `meetingViewModel` and `getDriversData`
-     * on the provided `driverViewModel`.
-     *
-     * @param meetingViewModel The ViewModel responsible for managing meeting data.
-     * @param driverViewModel The ViewModel responsible for managing driver data.
-     */
-    fun refreshMeetingAndDriverData(driverViewModel: DriverViewModel) {
-        driverViewModel.getDriversData()
-    }
-
-    fun fetchDriverData(
-        driverViewModel: DriverViewModel,
-        sessionKey: String
-    ) {
-        driverViewModel.getDriversData(sessionKey = sessionKey)
     }
 }

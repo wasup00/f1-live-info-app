@@ -14,7 +14,9 @@ import com.example.f1liveinfo.F1LiveInfoApplication
 import com.example.f1liveinfo.data.MeetingRepository
 import com.example.f1liveinfo.data.SessionRepository
 import com.example.f1liveinfo.model.Meeting
+import com.example.f1liveinfo.utils.Utils.LATEST
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 private const val TAG = "MeetingViewModel"
@@ -32,13 +34,23 @@ class MeetingViewModel(
         getMeetingData()
     }
 
-    fun getMeetingData() {
+    fun getMeetingData(sessionKey: String = LATEST) {
         meetingUiState = MeetingUiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             meetingUiState = try {
-                val meeting = meetingRepository.getMeetings().first()
+                val meetingDeferred = async { meetingRepository.getMeetings().first() }
+                val latestSessionDeferred =
+                    async { sessionRepository.getSessions(sessionKey = sessionKey) }
+
+                val meeting = meetingDeferred.await()
+                val latestSession = latestSessionDeferred.await()
                 //Log.d(TAG, "getMeetingData: $meeting")
-                MeetingUiState.Success(meeting)
+                MeetingUiState.Success(
+                    meeting.copy(
+                        sessions = latestSession,
+                        sessionKey = latestSession.first().sessionKey
+                    )
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to retrieve meeting: $e")
                 MeetingUiState.Error
@@ -46,14 +58,22 @@ class MeetingViewModel(
         }
     }
 
-    fun getSessionData() {
+    fun getSessionsData() {
         if (meetingUiState is MeetingUiState.Success) {
             viewModelScope.launch {
                 val currentMeeting = (meetingUiState as MeetingUiState.Success).meeting
                 val sessions = sessionRepository.getSessions(meetingKey = currentMeeting.meetingKey)
-                Log.d(TAG, "getSessionData: $sessions")
+                //Log.d(TAG, "getSessionsData: $sessions")
                 meetingUiState = MeetingUiState.Success(currentMeeting.copy(sessions = sessions))
             }
+        }
+    }
+
+    fun modifyMeetingSessionKey(sessionKey: Int) {
+        if (meetingUiState is MeetingUiState.Success) {
+            val currentMeeting = (meetingUiState as MeetingUiState.Success).meeting
+            val updatedMeeting = currentMeeting.copy(sessionKey = sessionKey)
+            meetingUiState = MeetingUiState.Success(updatedMeeting)
         }
     }
 

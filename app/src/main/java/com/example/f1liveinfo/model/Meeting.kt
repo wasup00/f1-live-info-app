@@ -17,5 +17,6 @@ data class Meeting(
     @SerialName("date_start")
     var dateStart: String,
     var year: Int,
-    var sessions: List<Session> = listOf()
+    var sessions: List<Session> = listOf(),
+    var sessionKey: Int? = null
 )
