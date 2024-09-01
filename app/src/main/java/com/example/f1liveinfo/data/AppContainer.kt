@@ -24,7 +24,10 @@ class DefaultAppContainer : AppContainer {
         "https://api.openf1.org/v1/"
 
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(LoggingInterceptor())

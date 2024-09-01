@@ -26,6 +26,7 @@ class MeetingViewModel(
 ) : ViewModel() {
 
     var meetingUiState: MeetingUiState by mutableStateOf(MeetingUiState.Loading)
+        private set
 
     init {
         getMeetingData()
