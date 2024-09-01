@@ -332,7 +332,7 @@ fun DriverCard(driver: Driver, modifier: Modifier = Modifier) {
             Spacer(modifier = modifier.padding(6.dp))
             Column(modifier = modifier.padding(8.dp)) {
                 Text(
-                    text = "${driver.firstName} ${driver.lastName} ${driver.driverNumber}",
+                    text = "${driver.fullName} ${driver.driverNumber}",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.Black
                 )
