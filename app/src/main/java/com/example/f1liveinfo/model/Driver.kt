@@ -23,16 +23,17 @@ data class Driver(
     val headshotUrl: String? = null,
     var currentPosition: Int? = null,
     var startingPosition: Int? = null
-) {
-    companion object {
-        fun driversToDriverPositionsMap(drivers: List<Driver>): HashMap<Int, Int> {
-            val driverPositions = HashMap<Int, Int>()
-//            for (driver in drivers) {driverPositions[driver.driverNumber] = driver.position!!
+)
+//{
+//    companion object {
+//        fun driversToDriverPositionsMap(drivers: List<Driver>): HashMap<Int, Int> {
+//            val driverPositions = HashMap<Int, Int>()
+////            for (driver in drivers) {driverPositions[driver.driverNumber] = driver.position!!
+////            }
+//            drivers.forEach { driver ->
+//                driverPositions[driver.driverNumber] = driver.currentPosition!!
 //            }
-            drivers.forEach { driver ->
-                driverPositions[driver.driverNumber] = driver.currentPosition!!
-            }
-            return driverPositions
-        }
-    }
-}
+//            return driverPositions
+//        }
+//    }
+//}
