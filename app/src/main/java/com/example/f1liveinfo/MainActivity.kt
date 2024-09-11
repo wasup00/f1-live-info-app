@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
@@ -160,9 +162,7 @@ fun F1App(
                     )
                 }
 
-                is MeetingUiState.Error -> {
-                    Text("Error loading sessions: ${meetingUiState.message}")
-                }
+                is MeetingUiState.Error -> {}
 
                 is MeetingUiState.Loading -> {
                     CircularProgressIndicator()
@@ -213,6 +213,7 @@ fun DriversScreen(
         )
 
         is DriversUiState.Error -> ErrorScreen(
+            onRefresh = onRefresh,
             errorMessage = driversUiState.message,
             modifier = modifier.fillMaxSize()
         )
@@ -258,8 +259,10 @@ fun F1TopBar(
                     if (sessions.size < 2) {
                         fetchSession()
                     }
-                    drawerState.apply {
-                        if (isClosed) open() else close()
+                    if (meetingUiState is MeetingUiState.Success) {
+                        drawerState.apply {
+                            if (isClosed) open() else close()
+                        }
                     }
                 }
             }) {
@@ -333,11 +336,11 @@ fun RefreshableListOfDrivers(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier) {
-        val refreshing by remember { mutableStateOf(false) }
-        val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = onRefresh)
+    val refreshing by remember { mutableStateOf(false) }
+    val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = onRefresh)
+    Box(modifier = modifier.pullRefresh(state)) {
         LazyColumn(
-            modifier = Modifier.pullRefresh(state),
+            modifier = Modifier,
         ) {
             items(drivers) { driver ->
                 DriverCard(isRace = isRace, driver = driver)
@@ -467,28 +470,51 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ErrorScreen(errorMessage: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+fun ErrorScreen(
+    onRefresh: () -> Unit,
+    errorMessage: String,
+    modifier: Modifier = Modifier
+) {
+    val refreshing by remember { mutableStateOf(false) }
+    val state = rememberPullRefreshState(refreshing = refreshing, onRefresh = onRefresh)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .pullRefresh(state)
+            .verticalScroll(rememberScrollState())
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_connection_error),
-            contentDescription = "Error icon",
-            modifier = Modifier.size(120.dp)
-        )
-        Text(
-            text = stringResource(R.string.loading_failed),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+
+        Column(
+            modifier = modifier
+                .fillMaxSize(),
+            //verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_connection_error),
+                contentDescription = "Error icon",
+                modifier = Modifier.size(120.dp)
+            )
+            Text(
+                text = stringResource(R.string.loading_failed),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
+            )
+        }
+        PullRefreshIndicator(
+            refreshing = refreshing,
+            state = state,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
         )
     }
 }
