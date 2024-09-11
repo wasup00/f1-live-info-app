@@ -228,7 +228,7 @@ fun F1TopBar(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
 ) {
-
+    var sessions = listOf<Session>()
     // TODO: Modify TopBar to display race status
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -238,7 +238,11 @@ fun F1TopBar(
         title = {
             when (meetingUiState) {
                 is MeetingUiState.Loading -> LoadingScreen(modifier = Modifier.size(200.dp))
-                is MeetingUiState.Success -> MeetingContent(meeting = meetingUiState.meeting)
+                is MeetingUiState.Success -> {
+                    sessions = meetingUiState.meeting.sessions
+                    MeetingContent(meeting = meetingUiState.meeting)
+                }
+
                 is MeetingUiState.Error -> Text(
                     "Error: ${meetingUiState.message}",
                     maxLines = 1,
@@ -251,7 +255,9 @@ fun F1TopBar(
         navigationIcon = {
             IconButton(onClick = {
                 coroutineScope.launch {
-                    fetchSession()
+                    if (sessions.size < 2) {
+                        fetchSession()
+                    }
                     drawerState.apply {
                         if (isClosed) open() else close()
                     }
