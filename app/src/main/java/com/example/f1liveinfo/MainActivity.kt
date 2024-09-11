@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -159,7 +160,13 @@ fun F1App(
                     )
                 }
 
-                else -> {}
+                is MeetingUiState.Error -> {
+                    Text("Error loading sessions: ${meetingUiState.message}")
+                }
+
+                is MeetingUiState.Loading -> {
+                    CircularProgressIndicator()
+                }
             }
         }
     ) {
@@ -205,18 +212,21 @@ fun DriversScreen(
             modifier = modifier.fillMaxWidth()
         )
 
-        is DriversUiState.Error -> ErrorScreen(modifierDriver = modifier.fillMaxSize())
+        is DriversUiState.Error -> ErrorScreen(
+            errorMessage = driversUiState.message,
+            modifier = modifier.fillMaxSize()
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun F1TopBar(
+    modifier: Modifier = Modifier,
     meetingUiState: MeetingUiState,
     fetchSession: () -> Unit,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    modifier: Modifier = Modifier
 ) {
 
     // TODO: Modify TopBar to display race status
@@ -229,7 +239,11 @@ fun F1TopBar(
             when (meetingUiState) {
                 is MeetingUiState.Loading -> LoadingScreen(modifier = Modifier.size(200.dp))
                 is MeetingUiState.Success -> MeetingContent(meeting = meetingUiState.meeting)
-                is MeetingUiState.Error -> ErrorScreen(modifierMeeting = modifier.size(30.dp))
+                is MeetingUiState.Error -> Text(
+                    "Error: ${meetingUiState.message}",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         },
 
@@ -447,22 +461,28 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ErrorScreen(modifierDriver: Modifier = Modifier, modifierMeeting: Modifier = Modifier) {
-    //TODO: Add pull to refresh functionality when error occurred
+fun ErrorScreen(errorMessage: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifierDriver, //Modifier.pullRefresh(state),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_connection_error),
-            contentDescription = "",
-            modifier = modifierMeeting
+            contentDescription = "Error icon",
+            modifier = Modifier.size(120.dp)
         )
         Text(
             text = stringResource(R.string.loading_failed),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
         )
     }
 }
