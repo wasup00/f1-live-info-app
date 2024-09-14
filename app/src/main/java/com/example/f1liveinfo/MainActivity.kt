@@ -4,14 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +24,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -130,7 +136,7 @@ fun F1App(
             driverViewModel.getDriversData()
             meetingViewModel.getMeetingData()
         },
-        fetchSession = { meetingViewModel.getSessionsData() },
+        fetchSessions = { meetingViewModel.getSessionsData() },
         modifyMeetingSessionKey = { sessionKey ->
             meetingViewModel.modifyMeetingSessionKey(
                 sessionKey = sessionKey
@@ -147,15 +153,14 @@ fun F1App(
     meetingUiState: MeetingUiState,
     driversUiState: DriversUiState,
     onRefresh: () -> Unit,
-    fetchSession: () -> Unit,
+    fetchSessions: () -> Unit,
     modifyMeetingSessionKey: (Int) -> Unit,
     getDriversForSession: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var isRace = false
+    var isRace by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -164,17 +169,20 @@ fun F1App(
                 is MeetingUiState.Success -> {
                     val meeting = meetingUiState.meeting
                     isRace =
-                        meeting.sessions.first { it.sessionKey == meeting.sessionKey }.sessionName == SessionName.Race
+                        meeting.sessions.firstOrNull { it.sessionKey == meeting.sessionKey }?.sessionName == SessionName.Race
                     SessionDrawerList(
-                        sessions = meetingUiState.meeting.sessions,
+                        meetingName = meeting.meetingName,
+                        sessions = meeting.sessions,
                         closeDrawer = { scope.launch { drawerState.close() } },
                         modifyMeetingSessionKey = modifyMeetingSessionKey,
-                        getDriversForSession = getDriversForSession
-
+                        getDriversForSession = getDriversForSession,
+                        fetchSessions = fetchSessions
                     )
                 }
 
-                is MeetingUiState.Error -> {}
+                is MeetingUiState.Error -> {
+                    Text("Error: ${meetingUiState.message}")
+                }
 
                 is MeetingUiState.Loading -> {
                     CircularProgressIndicator()
@@ -188,14 +196,12 @@ fun F1App(
                 F1TopBar(
                     drawerState = drawerState,
                     coroutineScope = scope,
-                    meetingUiState = meetingUiState,
-                    fetchSession = fetchSession
+                    meetingUiState = meetingUiState
                 )
             },
         ) { innerPadding ->
             Column(
-                modifier = Modifier
-                    .padding(innerPadding),
+                modifier = Modifier.padding(innerPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 DriversScreen(
@@ -237,11 +243,10 @@ fun DriversScreen(
 fun F1TopBar(
     modifier: Modifier = Modifier,
     meetingUiState: MeetingUiState,
-    fetchSession: () -> Unit,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
 ) {
-    var sessions = listOf<Session>()
+    
     // TODO: Modify TopBar to display race status
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -251,10 +256,7 @@ fun F1TopBar(
         title = {
             when (meetingUiState) {
                 is MeetingUiState.Loading -> LoadingScreen(modifier = Modifier.size(200.dp))
-                is MeetingUiState.Success -> {
-                    sessions = meetingUiState.meeting.sessions
-                    MeetingContent(meeting = meetingUiState.meeting)
-                }
+                is MeetingUiState.Success -> MeetingContent(meeting = meetingUiState.meeting)
 
                 is MeetingUiState.Error -> Text(
                     "Error: ${meetingUiState.message}",
@@ -264,13 +266,9 @@ fun F1TopBar(
             }
         },
 
-        //Might be useful later
         navigationIcon = {
             IconButton(onClick = {
                 coroutineScope.launch {
-                    if (sessions.size < 2) {
-                        fetchSession()
-                    }
                     if (meetingUiState is MeetingUiState.Success) {
                         drawerState.apply {
                             if (isClosed) open() else close()
@@ -289,33 +287,89 @@ fun F1TopBar(
 
 @Composable
 fun SessionDrawerList(
-    sessions: List<Session>,
+    meetingName: String,
+    sessions: List<Session>?,
     modifier: Modifier = Modifier,
     closeDrawer: () -> Unit,
     modifyMeetingSessionKey: (Int) -> Unit,
-    getDriversForSession: (Int) -> Unit
+    getDriversForSession: (Int) -> Unit,
+    fetchSessions: () -> Unit
 ) {
-    ModalDrawerSheet(modifier = modifier.fillMaxHeight()) {
-        Spacer(modifier = Modifier.padding(5.dp))
-        LazyColumn(modifier = modifier) {
-            items(sessions) { session ->
-                val sessionKey = session.sessionKey
-                NavigationDrawerItem(
-                    label = {
-                        Text(
-                            text = session.sessionName.value,
-                            style = MaterialTheme.typography.labelSmall
-                        )
+    var expanded by remember { mutableStateOf(false) }
+
+    ModalDrawerSheet(
+        modifier = modifier.widthIn(min = 200.dp, max = 300.dp),
+        drawerContainerColor = MaterialTheme.colorScheme.surface,
+        drawerContentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        if (!expanded) {
+                            fetchSessions()
+                        }
+                        expanded = !expanded
                     },
-                    selected = true,
-                    onClick = {
-                        getDriversForSession(sessionKey)
-                        modifyMeetingSessionKey(sessionKey)
-                        closeDrawer()
-                    },
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.padding(top = 10.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = meetingName,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand"
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                if (sessions == null) {
+                    CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.wrapContentHeight(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(sessions) { session ->
+                            val sessionKey = session.sessionKey
+                            NavigationDrawerItem(
+                                label = {
+                                    Text(
+                                        text = session.sessionName.value,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                },
+                                selected = false,
+                                onClick = {
+                                    getDriversForSession(sessionKey)
+                                    modifyMeetingSessionKey(sessionKey)
+                                    closeDrawer()
+                                },
+                                shape = MaterialTheme.shapes.small,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -847,9 +901,11 @@ fun F1AppPreviewOnSuccess() {
         meetingUiState = meetingUiState,
         driversUiState = driversUiState,
         onRefresh = { },
-        fetchSession = { },
+        fetchSessions = { },
         modifyMeetingSessionKey = { },
-        getDriversForSession = { })
+        getDriversForSession = { },
+
+        )
 }
 
 /*@Preview(
