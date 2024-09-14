@@ -4,7 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +27,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.filled.Menu
@@ -49,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -371,7 +379,7 @@ fun RefreshableListOfDrivers(
             modifier = Modifier,
         ) {
             items(drivers) { driver ->
-                DriverCard(isRace = isRace, driver = driver)
+                ExpandableDriverCard(isRace = isRace, driver = driver)
             }
         }
         PullRefreshIndicator(
@@ -384,8 +392,8 @@ fun RefreshableListOfDrivers(
 }
 
 @Composable
-fun DriverCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {
-
+fun ExpandableDriverCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {
+    var expanded by remember { mutableStateOf(false) }
     val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
     Card(
@@ -393,37 +401,86 @@ fun DriverCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {
         modifier = modifier
             .padding(top = 8.dp, start = 8.dp, end = 8.dp)
             .fillMaxWidth()
-    ) {
-        Row(
-            modifier = modifier.fillMaxSize()
-        ) {
-            PositionCard(
-                modifier = modifier
-                    .padding(start = 8.dp, end = 8.dp)
-                    .fillMaxHeight(),
-                isRace = isRace,
-                driver = driver
-            )
-            AsyncImage(
-                model = driver.headshotUrl,
-                contentDescription = null,
-                modifier = modifier.size(80.dp)
-            )
-            Spacer(modifier = modifier.padding(6.dp))
-            Column(modifier = modifier.padding(8.dp)) {
-                Text(
-                    text = "${driver.fullName} ${driver.driverNumber}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Black
+            .clickable { expanded = !expanded }
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
                 )
-                Text(
-                    text = driver.teamName,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.Black
+            )
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PositionCard(
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 8.dp)
+                        .fillMaxHeight(),
+                    isRace = isRace,
+                    driver = driver
+                )
+                AsyncImage(
+                    model = driver.headshotUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "${driver.fullName} ${driver.driverNumber}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = driver.teamName,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.Black
+                    )
+                }
+                ExpandIcon(
+                    expanded = expanded,
+                    onClick = { expanded = !expanded },
+                    modifier = Modifier.padding(16.dp)
                 )
             }
+            if (expanded) {
+                ExpandedContent(driver = driver)
+            }
         }
+    }
+}
+
+@Composable
+fun ExpandIcon(
+    expanded: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+            contentDescription = if (expanded) "Show less" else "Show more"
+        )
+    }
+}
+
+@Composable
+fun ExpandedContent(driver: Driver, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(
+            start = 16.dp,
+            top = 8.dp,
+            bottom = 16.dp,
+            end = 16.dp
+        )
+    ) {
+        // Add more driver information here
+        Text("Country: ${driver.countryCode}")
+        Text("Driver Number: ${driver.driverNumber}")
+        // Add more fields as needed
     }
 }
 
