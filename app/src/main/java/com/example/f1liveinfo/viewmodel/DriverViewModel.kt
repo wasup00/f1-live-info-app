@@ -1,4 +1,4 @@
-package com.example.f1liveinfo.ui.screens
+package com.example.f1liveinfo.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

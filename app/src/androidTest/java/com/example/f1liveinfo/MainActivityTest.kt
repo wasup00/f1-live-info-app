@@ -11,7 +11,13 @@ import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.model.Session
 import com.example.f1liveinfo.model.SessionName
 import com.example.f1liveinfo.model.SessionType
-import com.example.f1liveinfo.ui.screens.MeetingUiState
+import com.example.f1liveinfo.ui.components.ErrorScreen
+import com.example.f1liveinfo.ui.components.ExpandableDriverCard
+import com.example.f1liveinfo.ui.components.F1TopBar
+import com.example.f1liveinfo.ui.components.LoadingScreen
+import com.example.f1liveinfo.ui.components.MeetingContent
+import com.example.f1liveinfo.ui.components.PositionCard
+import com.example.f1liveinfo.viewmodel.MeetingUiState
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
