@@ -66,6 +66,9 @@ import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.model.Session
 import com.example.f1liveinfo.model.SessionName
 import com.example.f1liveinfo.model.SessionType
+import com.example.f1liveinfo.model.adjustForGmtOffset
+import com.example.f1liveinfo.model.getFormatedDate
+import com.example.f1liveinfo.model.getFormatedTime
 import com.example.f1liveinfo.ui.screens.DriverViewModel
 import com.example.f1liveinfo.ui.screens.DriversUiState
 import com.example.f1liveinfo.ui.screens.MeetingUiState
@@ -77,6 +80,7 @@ import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import kotlin.math.absoluteValue
 
 private const val TAG = "MainActivity"
@@ -311,20 +315,44 @@ fun SessionDrawerList(
 
 @Composable
 fun MeetingContent(meeting: Meeting, modifier: Modifier = Modifier) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    val session = meeting.sessions.first { session -> session.sessionKey == meeting.sessionKey }
+    Row(
+        modifier = modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        Text(
-            text = meeting.meetingName,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = "${meeting.location}, ${meeting.countryName}",
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.labelSmall,
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = meeting.meetingName,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                text = "${session.sessionName}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Date: ${session.getFormatedDate()}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                text = "Time: ${session.getFormatedTime()}",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
     }
 }
 
@@ -530,9 +558,13 @@ fun F1AppPreviewOnSuccess() {
         sessionKey = 1,
         sessionName = SessionName.Practice_1,
         meetingKey = 1242,
-        sessionType = SessionType.Practice
+        sessionType = SessionType.Practice,
+        gmtOffset = "02:00:00",
+        dateStart = LocalDateTime.parse("2024-07-26T11:30:00"),
+        dateEnd = LocalDateTime.parse("2024-07-26T12:30:00")
     )
 
+    session.adjustForGmtOffset()
     val meetingUiState = MeetingUiState.Success(
         Meeting(
             meetingKey = 1242,

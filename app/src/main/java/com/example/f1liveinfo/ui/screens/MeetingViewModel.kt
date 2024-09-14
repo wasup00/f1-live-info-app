@@ -1,5 +1,6 @@
 package com.example.f1liveinfo.ui.screens
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,6 +14,7 @@ import com.example.f1liveinfo.F1LiveInfoApplication
 import com.example.f1liveinfo.data.MeetingRepository
 import com.example.f1liveinfo.data.SessionRepository
 import com.example.f1liveinfo.model.Meeting
+import com.example.f1liveinfo.model.adjustForGmtOffset
 import com.example.f1liveinfo.network.ApiResult
 import com.example.f1liveinfo.utils.Utils.LATEST
 import kotlinx.coroutines.launch
@@ -41,27 +43,35 @@ class MeetingViewModel(
                         when (val sessionResult =
                             sessionRepository.getSessions(sessionKey = sessionKey)) {
                             is ApiResult.Success -> {
-                                val latestSession = sessionResult.data
+                                val latestSession =
+                                    sessionResult.data.map { it.adjustForGmtOffset() }
+                                Log.i("$TAG-SESSION", "latestSession: $latestSession")
                                 MeetingUiState.Success(
                                     meeting.copy(
                                         sessions = latestSession,
-                                        sessionKey = latestSession.firstOrNull()?.sessionKey ?: 0
+                                        sessionKey = latestSession.firstOrNull()?.sessionKey
                                     )
                                 )
                             }
 
-                            is ApiResult.Error -> MeetingUiState.Error(
-                                sessionResult.exception.message ?: "Failed to retrieve sessions"
-                            )
+                            is ApiResult.Error -> {
+                                sessionResult.exception.message?.let { Log.e("$TAG-SESSION", it) }
+                                MeetingUiState.Error(
+                                    sessionResult.exception.message ?: "Failed to retrieve sessions"
+                                )
+                            }
                         }
                     } else {
                         MeetingUiState.Error("No meetings found")
                     }
                 }
 
-                is ApiResult.Error -> MeetingUiState.Error(
-                    meetingResult.exception.message ?: "Failed to retrieve meetings"
-                )
+                is ApiResult.Error -> {
+                    meetingResult.exception.message?.let { Log.e("$TAG-MEETING", it) }
+                    MeetingUiState.Error(
+                        meetingResult.exception.message ?: "Failed to retrieve meetings"
+                    )
+                }
             }
         }
     }
