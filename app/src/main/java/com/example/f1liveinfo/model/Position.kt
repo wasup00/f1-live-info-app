@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class Position(
     @SerialName("driver_number")
     val driverNumber: Int,
+    val date: String,
     val position: Int
 )

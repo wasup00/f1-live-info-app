@@ -41,10 +41,10 @@ class MainActivityTest {
             teamName = "Red Bull Racing",
             driverNumber = 1,
             teamColor = "3671C6",
-            position = 15
+            currentPosition = 15
         )
         composeTestRule.setContent {
-            DriverStatus(driver = driver)
+            DriverCard(driver = driver)
         }
         composeTestRule.onNodeWithText("15.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Max Verstappen 1").assertIsDisplayed()

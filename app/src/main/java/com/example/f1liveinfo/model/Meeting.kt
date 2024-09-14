@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Meeting(
-//    val meetingKey: Int,
+    @SerialName("meeting_key")
+    val meetingKey: Int,
     var location: String,
     @SerialName("country_name")
     var countryName: String,
@@ -15,5 +16,7 @@ data class Meeting(
     var gmtOffset: String,
     @SerialName("date_start")
     var dateStart: String,
-    var year: Int
+    var year: Int,
+    var sessions: List<Session> = listOf(),
+    var sessionKey: Int? = null
 )
