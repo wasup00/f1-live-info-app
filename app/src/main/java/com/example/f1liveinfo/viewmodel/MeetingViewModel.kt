@@ -14,9 +14,9 @@ import com.example.f1liveinfo.F1LiveInfoApplication
 import com.example.f1liveinfo.data.MeetingRepository
 import com.example.f1liveinfo.data.SessionRepository
 import com.example.f1liveinfo.model.Meeting
-import com.example.f1liveinfo.model.adjustForGmtOffset
 import com.example.f1liveinfo.network.ApiResult
 import com.example.f1liveinfo.utils.Utils.LATEST
+import com.example.f1liveinfo.utils.Utils.adjustForGmtOffset
 import kotlinx.coroutines.launch
 
 private const val TAG = "MeetingViewModel"

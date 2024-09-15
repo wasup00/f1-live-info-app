@@ -18,17 +18,3 @@ data class Lap(
     @SerialName("duration_sector_3")
     val sector3: Float?,
 )
-
-fun Lap.convertLapDurationToString(): String {
-    if (lapDuration == null){
-        return ""
-    }
-    val milliseconds = ((lapDuration % 1) * 1000).toInt()
-    val seconds = lapDuration.toInt() % 60
-    val minutes = lapDuration.toInt() / 60
-
-    val millisecondsString = milliseconds.toString().padStart(3, '0')
-    val secondsString = seconds.toString().padStart(2, '0')
-    val minutesString = minutes.toString().padStart(2, '0')
-    return "${minutesString}:${secondsString}.${millisecondsString}"
-}

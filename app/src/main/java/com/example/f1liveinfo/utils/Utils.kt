@@ -2,6 +2,10 @@ package com.example.f1liveinfo.utils
 
 import android.graphics.Color.parseColor
 import androidx.compose.ui.graphics.Color
+import com.example.f1liveinfo.model.Interval
+import com.example.f1liveinfo.model.Lap
+import com.example.f1liveinfo.model.Session
+import java.time.ZoneId
 
 
 object Utils {
@@ -24,4 +28,71 @@ object Utils {
         val colorInt = parseColor(hexStr)
         return Color(colorInt).copy(alpha = alpha)
     }
+
+    fun Lap.convertLapDurationToString(): String {
+        if (lapDuration == null){
+            return ""
+        }
+        val milliseconds = ((lapDuration % 1) * 1000).toInt()
+        val seconds = lapDuration.toInt() % 60
+        val minutes = lapDuration.toInt() / 60
+
+        val millisecondsString = milliseconds.toString().padStart(3, '0')
+        val secondsString = seconds.toString().padStart(2, '0')
+        val minutesString = minutes.toString().padStart(2, '0')
+        return "${minutesString}:${secondsString}.${millisecondsString}"
+    }
+
+
+    fun Session.adjustForGmtOffset(): Session {
+        val zoneId = ZoneId.systemDefault()
+        return copy(
+            dateStart = dateStart.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
+                .toLocalDateTime(),
+            dateEnd = dateEnd.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId).toLocalDateTime()
+        )
+    }
+
+    fun Session.getFormatedDate(): String {
+        val month = dateStart.monthValue.toString().padStart(2, '0')
+        val day = dateStart.dayOfMonth.toString().padStart(2, '0')
+        return "$month-$day-${dateStart.year}"
+    }
+
+    fun Session.getFormatedTime(): String {
+        val hour = dateStart.hour.toString().padStart(2, '0')
+        val minute = dateStart.minute.toString().padStart(2, '0')
+        val second = dateStart.second.toString().padStart(2, '0')
+
+        return "${hour}:${minute}:${second}"
+    }
+
+    fun Interval.getFormatedInterval(): String {
+        if (interval == null){
+            return ""
+        }
+        val milliseconds = ((interval % 1) * 1000).toInt()
+        val seconds = interval.toInt() % 60
+        val minutes = interval.toInt() / 60
+
+        val millisecondsString = milliseconds.toString().padStart(3, '0')
+        val secondsString = seconds.toString().padStart(2, '0')
+        val minutesString = minutes.toString().padStart(2, '0')
+        return "${minutesString}:${secondsString}.${millisecondsString}"
+    }
+
+    fun Interval.getFormatedIntervalGapToLeader(): String{
+        if (gapToLeader == null){
+            return ""
+        }
+        val milliseconds = ((gapToLeader % 1) * 1000).toInt()
+        val seconds = gapToLeader.toInt() % 60
+        val minutes = gapToLeader.toInt() / 60
+
+        val millisecondsString = milliseconds.toString().padStart(3, '0')
+        val secondsString = seconds.toString().padStart(2, '0')
+        val minutesString = minutes.toString().padStart(2, '0')
+        return "${minutesString}:${secondsString}.${millisecondsString}"
+    }
+
 }

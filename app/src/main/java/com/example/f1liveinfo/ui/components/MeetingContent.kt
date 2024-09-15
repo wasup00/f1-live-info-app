@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.f1liveinfo.model.Meeting
-import com.example.f1liveinfo.model.getFormatedDate
-import com.example.f1liveinfo.model.getFormatedTime
+import com.example.f1liveinfo.utils.Utils.getFormatedDate
+import com.example.f1liveinfo.utils.Utils.getFormatedTime
 
 @Composable
 fun MeetingContent(meeting: Meeting, modifier: Modifier = Modifier) {

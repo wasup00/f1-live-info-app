@@ -4,7 +4,6 @@ import com.example.f1liveinfo.utils.LocalDateTimeSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Serializable
 data class Session(
@@ -31,26 +30,3 @@ data class Session(
     var dateEnd: LocalDateTime,
 //    var year: Int
 )
-
-fun Session.adjustForGmtOffset(): Session {
-    val zoneId = ZoneId.systemDefault()
-    return copy(
-        dateStart = dateStart.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
-            .toLocalDateTime(),
-        dateEnd = dateEnd.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId).toLocalDateTime()
-    )
-}
-
-fun Session.getFormatedDate(): String {
-    val month = dateStart.monthValue.toString().padStart(2, '0')
-    val day = dateStart.dayOfMonth.toString().padStart(2, '0')
-    return "$month-$day-${dateStart.year}"
-}
-
-fun Session.getFormatedTime(): String {
-    val hour = dateStart.hour.toString().padStart(2, '0')
-    val minute = dateStart.minute.toString().padStart(2, '0')
-    val second = dateStart.second.toString().padStart(2, '0')
-
-    return "${hour}:${minute}:${second}"
-}

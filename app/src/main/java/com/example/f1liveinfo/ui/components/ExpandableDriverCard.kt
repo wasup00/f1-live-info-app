@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Lap
-import com.example.f1liveinfo.model.convertLapDurationToString
 import com.example.f1liveinfo.utils.Utils
+import com.example.f1liveinfo.utils.Utils.convertLapDurationToString
 
 @Composable
 fun ExpandableDriverCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier) {

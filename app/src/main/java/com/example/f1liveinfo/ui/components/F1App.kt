@@ -24,7 +24,7 @@ import com.example.f1liveinfo.model.Meeting
 import com.example.f1liveinfo.model.Session
 import com.example.f1liveinfo.model.SessionName
 import com.example.f1liveinfo.model.SessionType
-import com.example.f1liveinfo.model.adjustForGmtOffset
+import com.example.f1liveinfo.utils.Utils.adjustForGmtOffset
 import com.example.f1liveinfo.viewmodel.DriversUiState
 import com.example.f1liveinfo.viewmodel.MeetingUiState
 import kotlinx.coroutines.launch
