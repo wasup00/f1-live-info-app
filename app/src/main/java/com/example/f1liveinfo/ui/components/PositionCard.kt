@@ -2,7 +2,6 @@ package com.example.f1liveinfo.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -17,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.f1liveinfo.model.Driver
+import com.example.f1liveinfo.model.Lap
 import kotlin.math.absoluteValue
 
 @Composable
@@ -57,7 +58,7 @@ fun PositionCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier)
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = modifier.size(15.dp)
+                modifier = Modifier.size(15.dp)
             )
             Text(
                 text = difference.absoluteValue.toString(),
@@ -67,17 +68,46 @@ fun PositionCard(isRace: Boolean, driver: Driver, modifier: Modifier = Modifier)
         }
     } else {
         Column(
-            modifier = modifier
-                .fillMaxHeight(),
+            modifier = modifier,
+            //.fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                modifier = modifier,
+                modifier = Modifier,
                 text = driver.currentPosition.toString(),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.Black,
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PositionCardPreview() {
+    MaterialTheme {
+        PositionCard(
+            isRace = true,
+            driver = Driver(
+                firstName = "Lewis",
+                lastName = "Hamilton",
+                countryCode = "British",
+                teamName = "Mercedes",
+                teamColor = "00D2BE",
+                driverNumber = 44,
+                currentPosition = 1,
+                startingPosition = 1,
+                fullName = "Lewis HAMILTON",
+                latestLap = Lap(
+                    lapNumber = 1,
+                    driverNumber = 44,
+                    lapDuration = 1.234f,
+                    sector1 = null,
+                    sector2 = null,
+                    sector3 = null
+                )
+            )
+        )
     }
 }

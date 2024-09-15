@@ -1,6 +1,7 @@
 package com.example.f1liveinfo.data
 
 import com.example.f1liveinfo.network.DriverApiService
+import com.example.f1liveinfo.network.LapApiService
 import com.example.f1liveinfo.network.LoggingInterceptor
 import com.example.f1liveinfo.network.MeetingApiService
 import com.example.f1liveinfo.network.PositionApiService
@@ -16,6 +17,7 @@ interface AppContainer {
     val meetingRepository: MeetingRepository
     val positionRepository: PositionRepository
     val sessionRepository: SessionRepository
+    val lapRepository: LapRepository
 }
 
 class DefaultAppContainer : AppContainer {
@@ -69,5 +71,13 @@ class DefaultAppContainer : AppContainer {
 
     override val sessionRepository: SessionRepository by lazy {
         NetworkSessionRepository(retrofitSessionService)
+    }
+
+    private val retrofitLapService: LapApiService by lazy {
+        retrofit.create(LapApiService::class.java)
+    }
+
+    override val lapRepository: LapRepository by lazy {
+        NetworkLapRepository(retrofitLapService)
     }
 }

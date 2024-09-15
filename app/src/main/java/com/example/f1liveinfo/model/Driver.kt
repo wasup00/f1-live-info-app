@@ -22,7 +22,8 @@ data class Driver(
     @SerialName("headshot_url")
     val headshotUrl: String? = null,
     var currentPosition: Int? = null,
-    var startingPosition: Int? = null
+    var startingPosition: Int? = null,
+    val latestLap: Lap? = null
 )
 //{
 //    companion object {

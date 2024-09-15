@@ -35,15 +35,22 @@ data class Session(
 fun Session.adjustForGmtOffset(): Session {
     val zoneId = ZoneId.systemDefault()
     return copy(
-        dateStart = dateStart.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId).toLocalDateTime(),
+        dateStart = dateStart.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId)
+            .toLocalDateTime(),
         dateEnd = dateEnd.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId).toLocalDateTime()
     )
 }
 
 fun Session.getFormatedDate(): String {
-    return "${dateStart.monthValue}-${dateStart.dayOfMonth}-${dateStart.year}"
+    val month = dateStart.monthValue.toString().padStart(2, '0')
+    val day = dateStart.dayOfMonth.toString().padStart(2, '0')
+    return "$month-$day-${dateStart.year}"
 }
 
 fun Session.getFormatedTime(): String {
-    return "${dateStart.hour}:${dateStart.minute}:${dateStart.second}"
+    val hour = dateStart.hour.toString().padStart(2, '0')
+    val minute = dateStart.minute.toString().padStart(2, '0')
+    val second = dateStart.second.toString().padStart(2, '0')
+
+    return "${hour}:${minute}:${second}"
 }

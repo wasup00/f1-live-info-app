@@ -104,7 +104,7 @@ fun F1AppPreviewOnSuccess() {
 
     val session = Session(
         sessionKey = 1,
-        sessionName = SessionName.Practice_1,
+        sessionName = SessionName.Practice1,
         meetingKey = 1242,
         sessionType = SessionType.Practice,
         gmtOffset = "02:00:00",
