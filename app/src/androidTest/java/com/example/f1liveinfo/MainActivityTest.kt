@@ -31,7 +31,7 @@ class MainActivityTest {
     fun meetingContent_isDisplayed() {
         val session = Session(
             sessionKey = 1,
-            sessionName = SessionName.Practice_1,
+            sessionName = SessionName.Practice1,
             meetingKey = 1242,
             sessionType = SessionType.Practice,
             gmtOffset = "02:00:00",
@@ -50,14 +50,14 @@ class MainActivityTest {
             sessions = listOf(session),
             meetingKey = 1,
 
-        )
+            )
         composeTestRule.setContent {
             MeetingContent(meeting = meeting)
         }
         composeTestRule.onNodeWithText("Belgian Grand Prix").assertIsDisplayed()
         composeTestRule.onNodeWithText("Practice 1").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Date: 7-26-2024").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Time: 11:30:0").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Date: 07-26-2024").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Time: 11:30:00").assertIsDisplayed()
     }
 
     @Test
@@ -78,7 +78,7 @@ class MainActivityTest {
         }
         composeTestRule.onNodeWithText("15").assertIsDisplayed()
         composeTestRule.onNodeWithText("5").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Max VERSTAPPEN 1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Max VERSTAPPEN").assertIsDisplayed()
         composeTestRule.onNodeWithText("Red Bull Racing").assertIsDisplayed()
     }
 
@@ -114,17 +114,18 @@ class MainActivityTest {
         composeTestRule.onNodeWithText("Country: GBR").assertDoesNotExist()
 
         // Click to expand
-        composeTestRule.onNodeWithText("Lewis HAMILTON 44").performClick()
+        composeTestRule.onNodeWithText("Lewis HAMILTON").performClick()
 
         // Now, expanded content should be visible
         composeTestRule.onNodeWithText("Country: GBR").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Driver Number: 44").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Number: 44").assertIsDisplayed()
 
         // Click to collapse
-        composeTestRule.onNodeWithText("Lewis HAMILTON 44").performClick()
+        composeTestRule.onNodeWithText("Lewis HAMILTON").performClick()
 
         // Expanded content should not be visible again
         composeTestRule.onNodeWithText("Country: GBR").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Number: 44").assertDoesNotExist()
     }
 
     @Test
@@ -210,8 +211,8 @@ class MainActivityTest {
 
         composeTestRule.onNodeWithText("Belgian Grand Prix").assertIsDisplayed()
         composeTestRule.onNodeWithText("Race").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Date: 7-28-2024").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Time: 14:0:0").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Date: 07-28-2024").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Time: 14:00:00").assertIsDisplayed()
     }
 
     @Test
