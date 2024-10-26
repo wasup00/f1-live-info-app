@@ -9,17 +9,17 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 interface MeetingRepository {
-    suspend fun getMeetings(): ApiResult<List<Meeting>>
+    suspend fun getMeetings(meetingKey: String = LATEST): ApiResult<List<Meeting>>
     suspend fun getMeetings(year: Int): ApiResult<List<Meeting>>
 }
 
 class NetworkMeetingRepository(
     private val meetingApiService: MeetingApiService
 ) : MeetingRepository {
-    override suspend fun getMeetings(): ApiResult<List<Meeting>> =
+    override suspend fun getMeetings(meetingKey: String): ApiResult<List<Meeting>> =
         withContext(Dispatchers.IO) {
             try {
-                val meetings = meetingApiService.getMeetings(meetingKey = LATEST)
+                val meetings = meetingApiService.getMeetings(meetingKey = meetingKey)
                 ApiResult.Success(meetings)
             } catch (e: IOException) {
                 ApiResult.Error(Exception("Network error. Please check your internet connection."))

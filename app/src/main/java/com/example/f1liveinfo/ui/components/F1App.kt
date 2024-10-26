@@ -35,8 +35,8 @@ fun F1App(
     meetingUiState: MeetingUiState,
     driversUiState: DriversUiState,
     onRefresh: () -> Unit,
-    fetchSessions: () -> Unit,
-    modifyMeetingSessionKey: (Int) -> Unit,
+    //fetchSessions: () -> Unit,
+    modifySessionKeyInMeeting: (Int) -> Unit,
     getDriversForSession: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -50,15 +50,17 @@ fun F1App(
             when (meetingUiState) {
                 is MeetingUiState.Success -> {
                     val meeting = meetingUiState.meeting
-                    isRace =
-                        meeting.sessions.firstOrNull { it.sessionKey == meeting.sessionKey }?.sessionName == SessionName.Race
+                    if (meeting.sessions.isNotEmpty()) {
+                        isRace =
+                            meeting.sessions.first { it.sessionKey == meeting.sessionKey }.sessionName == SessionName.Race
+                    }
                     ResultDrawerList(
                         meetingName = meeting.meetingName,
                         sessions = meeting.sessions,
                         closeDrawer = { scope.launch { drawerState.close() } },
-                        modifyMeetingSessionKey = modifyMeetingSessionKey,
+                        modifySessionKeyInMeeting = modifySessionKeyInMeeting,
                         getDriversForSession = getDriversForSession,
-                        fetchSessions = fetchSessions
+                        //fetchSessions = fetchSessions
                     )
                 }
 
@@ -338,8 +340,7 @@ fun F1AppPreviewOnSuccess() {
         meetingUiState = meetingUiState,
         driversUiState = driversUiState,
         onRefresh = { },
-        fetchSessions = { },
-        modifyMeetingSessionKey = { },
+        modifySessionKeyInMeeting = { },
         getDriversForSession = { },
 
         )
@@ -358,9 +359,8 @@ fun F1AppPreviewOnLoading() {
         meetingUiState = meetingUiState,
         driversUiState = driversUiState,
         onRefresh = { },
-        fetchSessions = {},
         getDriversForSession = {},
-        modifyMeetingSessionKey = {})
+        modifySessionKeyInMeeting = {})
 
 }
 
@@ -375,8 +375,7 @@ fun F1AppPreviewOnError() {
         meetingUiState = meetingUiState,
         driversUiState = driversUiState,
         onRefresh = { },
-        fetchSessions = {},
         getDriversForSession = {},
-        modifyMeetingSessionKey = {})
+        modifySessionKeyInMeeting = {})
 
 }

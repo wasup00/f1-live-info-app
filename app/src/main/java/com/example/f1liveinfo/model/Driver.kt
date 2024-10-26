@@ -6,15 +6,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Driver(
     @SerialName("last_name")
-    val lastName: String = "defaultLastName",
+    val lastName: String = "unknownLastName",
     @SerialName("first_name")
-    val firstName: String = "defaultFirstName",
+    val firstName: String = "unknownFirstName",
     @SerialName("country_code")
-    val countryCode: String = "defaultCountryCode",
+    val countryCode: String = "unknownCountryCode",
     @SerialName("full_name")
-    val fullName: String = "defaultFullName",
+    val fullName: String = "unknownFullName",
     @SerialName("team_name")
-    val teamName: String = "defaultTeamName",
+    val teamName: String = "unknownTeamName",
     @SerialName("driver_number")
     val driverNumber: Int = 0,
     @SerialName("team_colour")

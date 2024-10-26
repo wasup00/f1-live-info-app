@@ -33,70 +33,54 @@ class MeetingViewModel(
         getMeetingData()
     }
 
-    fun getMeetingData(sessionKey: String = LATEST) {
+    fun getMeetingData(meetingKey: String = LATEST) {
         meetingUiState = MeetingUiState.Loading
         viewModelScope.launch {
-            meetingUiState = when (val meetingResult = meetingRepository.getMeetings()) {
-                is ApiResult.Success -> {
-                    val meeting = meetingResult.data.firstOrNull()
-                    if (meeting != null) {
-                        when (val sessionResult =
-                            sessionRepository.getSessions(sessionKey = sessionKey)) {
-                            is ApiResult.Success -> {
-                                val latestSession =
-                                    sessionResult.data.map { it.adjustForGmtOffset() }
-                                Log.i("$TAG-SESSION", "latestSession: $latestSession")
-                                MeetingUiState.Success(
-                                    meeting.copy(
-                                        sessions = latestSession,
-                                        sessionKey = latestSession.firstOrNull()?.sessionKey
-                                    )
-                                )
-                            }
-
-                            is ApiResult.Error -> {
-                                sessionResult.exception.message?.let { Log.e("$TAG-SESSION", it) }
-                                MeetingUiState.Error(
-                                    sessionResult.exception.message ?: "Failed to retrieve sessions"
-                                )
-                            }
-                        }
-                    } else {
-                        MeetingUiState.Error("No meetings found")
-                    }
-                }
-
-                is ApiResult.Error -> {
-                    meetingResult.exception.message?.let { Log.e("$TAG-MEETING", it) }
-                    MeetingUiState.Error(
-                        meetingResult.exception.message ?: "Failed to retrieve meetings"
-                    )
-                }
-            }
-        }
-    }
-
-    fun getSessionsData() {
-        if (meetingUiState is MeetingUiState.Success) {
-            viewModelScope.launch {
-                val currentMeeting = (meetingUiState as MeetingUiState.Success).meeting
-                when (val sessionResult =
-                    sessionRepository.getSessions(meetingKey = currentMeeting.meetingKey)) {
+            meetingUiState =
+                when (val meetingResult = meetingRepository.getMeetings(meetingKey = meetingKey)) {
                     is ApiResult.Success -> {
-                        val sessions = sessionResult.data
-                        meetingUiState =
-                            MeetingUiState.Success(currentMeeting.copy(sessions = sessions))
+                        val meeting = meetingResult.data.maxByOrNull { it.meetingKey }
+                        if (meeting != null) {
+                            updateSessions(meeting = meeting)
+                        } else {
+                            MeetingUiState.Error("No meetings found")
+                        }
                     }
 
-                    is ApiResult.Error -> meetingUiState = MeetingUiState.Error(
-                        sessionResult.exception.message ?: "Failed to retrieve sessions"
-                    )
+                    is ApiResult.Error -> {
+                        meetingResult.exception.message?.let { Log.e("$TAG-MEETING", it) }
+                        MeetingUiState.Error(
+                            meetingResult.exception.message ?: "Failed to retrieve meetings"
+                        )
+                    }
                 }
+        }
+    }
+
+    private suspend fun updateSessions(meeting: Meeting): MeetingUiState {
+        when (val sessionsResult = sessionRepository.getSessions(meetingKey = meeting.meetingKey)) {
+            is ApiResult.Success -> {
+                val sessions =
+                    sessionsResult.data.map { it.adjustForGmtOffset() }
+                Log.i("$TAG-SESSION", "latestSession: $sessions")
+                return MeetingUiState.Success(
+                    meeting.copy(
+                        sessions = sessions,
+                        sessionKey = sessions.maxByOrNull { it.sessionKey }!!.sessionKey
+                    )
+                )
+            }
+
+            is ApiResult.Error -> {
+                sessionsResult.exception.message?.let { Log.e("$TAG-SESSION", it) }
+                return MeetingUiState.Error(
+                    sessionsResult.exception.message ?: "Failed to retrieve sessions"
+                )
             }
         }
     }
 
-    fun modifyMeetingSessionKey(sessionKey: Int) {
+    fun modifySessionKeyInMeeting(sessionKey: Int) {
         if (meetingUiState is MeetingUiState.Success) {
             val currentMeeting = (meetingUiState as MeetingUiState.Success).meeting
             val updatedMeeting = currentMeeting.copy(sessionKey = sessionKey)

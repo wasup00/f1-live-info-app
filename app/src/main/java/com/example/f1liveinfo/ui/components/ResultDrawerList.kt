@@ -32,18 +32,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.f1liveinfo.model.Session
+import com.example.f1liveinfo.model.SessionName
+import com.example.f1liveinfo.model.SessionType
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ResultDrawerList(
     meetingName: String,
-    sessions: List<Session>?,
+    sessions: List<Session>,
     modifier: Modifier = Modifier,
     closeDrawer: () -> Unit,
-    modifyMeetingSessionKey: (Int) -> Unit,
+    modifySessionKeyInMeeting: (Int) -> Unit,
     getDriversForSession: (Int) -> Unit,
-    fetchSessions: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -56,12 +60,7 @@ fun ResultDrawerList(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {
-                        if (!expanded) {
-                            fetchSessions()
-                        }
-                        expanded = !expanded
-                    },
+                    .clickable { expanded = !expanded },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -71,7 +70,7 @@ fun ResultDrawerList(
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = meetingName,
@@ -90,7 +89,7 @@ fun ResultDrawerList(
                 enter = expandVertically(),
                 exit = shrinkVertically()
             ) {
-                if (sessions == null) {
+                if (sessions.isEmpty()) {
                     CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
                 } else {
                     LazyColumn(
@@ -109,7 +108,7 @@ fun ResultDrawerList(
                                 selected = false,
                                 onClick = {
                                     getDriversForSession(sessionKey)
-                                    modifyMeetingSessionKey(sessionKey)
+                                    modifySessionKeyInMeeting(sessionKey)
                                     closeDrawer()
                                 },
                                 shape = MaterialTheme.shapes.small,
@@ -122,5 +121,50 @@ fun ResultDrawerList(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun ResultDrawerListPreview() {
+    MaterialTheme {
+        ResultDrawerList(
+            meetingName = "Meeting Name",
+            sessions = listOf(
+                Session(
+                    sessionKey = 0,
+                    sessionName = SessionName.Race,
+                    dateEnd = OffsetDateTime.parse(
+                        "2024-10-18T17:30:00-05:00",
+                        DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                    ).toLocalDateTime(),
+                    dateStart = OffsetDateTime.parse(
+                        "2024-10-18T17:00:00-05:00",
+                        DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                    ).toLocalDateTime(),
+                    gmtOffset = "-05:00:00",
+                    meetingKey = 1,
+                    sessionType = SessionType.Race
+                ),
+                Session(
+                    sessionKey = 0,
+                    sessionName = SessionName.Qualifying,
+                    dateEnd = OffsetDateTime.parse(
+                        "2024-10-17T17:30:00-05:00",
+                        DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                    ).toLocalDateTime(),
+                    dateStart = OffsetDateTime.parse(
+                        "2024-10-17T17:00:00-05:00",
+                        DateTimeFormatter.ISO_OFFSET_DATE_TIME
+                    ).toLocalDateTime(),
+                    gmtOffset = "-05:00:00",
+                    meetingKey = 1,
+                    sessionType = SessionType.Qualifying
+                ),
+            ),
+            closeDrawer = { },
+            modifySessionKeyInMeeting = { },
+            getDriversForSession = { },
+        )
     }
 }

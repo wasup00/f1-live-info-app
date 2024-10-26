@@ -41,9 +41,9 @@ class MainActivity : ComponentActivity() {
                             driverViewModel.getDriversData()
                             meetingViewModel.getMeetingData()
                         },
-                        fetchSessions = { meetingViewModel.getSessionsData() },
-                        modifyMeetingSessionKey = { sessionKey ->
-                            meetingViewModel.modifyMeetingSessionKey(
+                        //fetchSessions = { meetingViewModel.getSessionsData() },
+                        modifySessionKeyInMeeting = { sessionKey ->
+                            meetingViewModel.modifySessionKeyInMeeting(
                                 sessionKey = sessionKey
                             )
                         },
