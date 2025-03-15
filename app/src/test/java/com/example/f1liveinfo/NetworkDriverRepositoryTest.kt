@@ -3,6 +3,7 @@ package com.example.f1liveinfo
 import com.example.f1liveinfo.data.NetworkDriverRepository
 import com.example.f1liveinfo.fake.apiservice.FakeDriverApiService
 import com.example.f1liveinfo.fake.data.FakeDriverDataSource
+import com.example.f1liveinfo.network.ApiResult
 import com.example.f1liveinfo.utils.Utils.LATEST
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
@@ -15,6 +16,9 @@ class NetworkDriverRepositoryTest {
         val repository = NetworkDriverRepository(
             driverApiService = FakeDriverApiService()
         )
-        assertEquals(FakeDriverDataSource.driversFromData, repository.getDrivers(LATEST))
+        assertEquals(
+            ApiResult.Success(FakeDriverDataSource.driversFromData),
+            repository.getDrivers(LATEST)
+        )
     }
 }

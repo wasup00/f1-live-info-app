@@ -20,6 +20,9 @@ enum class SessionName(val value: String) {
     @SerialName("Sprint Qualifying")
     SprintQualifying("Sprint Qualifying"),
 
+    @SerialName("Sprint")
+    Sprint("Sprint"),
+
     @SerialName("Race")
     Race("Race");
 

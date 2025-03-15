@@ -63,7 +63,10 @@ fun ExpandedDriverContentPreview() {
             lapDuration = 102.056f,
             sector1 = 35.913f,
             sector2 = 40.978f,
-            sector3 = 25.165f
+            sector3 = 25.165f,
+            meetingKey = 1,
+            sessionKey = 1,
+            isOutLap = false
         )
     )
     MaterialTheme {

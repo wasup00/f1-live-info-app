@@ -2,9 +2,12 @@ package com.example.f1liveinfo.utils
 
 import android.graphics.Color.parseColor
 import androidx.compose.ui.graphics.Color
+import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Interval
 import com.example.f1liveinfo.model.Lap
 import com.example.f1liveinfo.model.Session
+import kotlinx.serialization.json.Json
+import java.io.InputStream
 import java.time.ZoneId
 
 
@@ -30,7 +33,7 @@ object Utils {
     }
 
     fun Lap.convertLapDurationToString(): String {
-        if (lapDuration == null){
+        if (lapDuration == null) {
             return ""
         }
         val milliseconds = ((lapDuration % 1) * 1000).toInt()
@@ -67,13 +70,13 @@ object Utils {
         return "${hour}:${minute}:${second}"
     }
 
-    fun Interval.getFormatedInterval(): String {
-        if (interval == null){
+    fun Interval.convertGapToDriverAheadToString(): String {
+        if (gapToDriverAhead == null) {
             return ""
         }
-        val milliseconds = ((interval % 1) * 1000).toInt()
-        val seconds = interval.toInt() % 60
-        val minutes = interval.toInt() / 60
+        val milliseconds = ((gapToDriverAhead % 1) * 1000).toInt()
+        val seconds = gapToDriverAhead.toInt() % 60
+        val minutes = gapToDriverAhead.toInt() / 60
 
         val millisecondsString = milliseconds.toString().padStart(3, '0')
         val secondsString = seconds.toString().padStart(2, '0')
@@ -81,8 +84,8 @@ object Utils {
         return "${minutesString}:${secondsString}.${millisecondsString}"
     }
 
-    fun Interval.getFormatedIntervalGapToLeader(): String{
-        if (gapToLeader == null){
+    fun Interval.getFormatedIntervalGapToLeader(): String {
+        if (gapToLeader == null) {
             return ""
         }
         val milliseconds = ((gapToLeader % 1) * 1000).toInt()
@@ -95,4 +98,12 @@ object Utils {
         return "${minutesString}:${secondsString}.${millisecondsString}"
     }
 
+    fun readDriversDataFromJson(): List<Driver> {
+        val json = Json { ignoreUnknownKeys = true }
+        val inputStream: InputStream =
+            javaClass.classLoader!!.getResourceAsStream("data_drivers.json")
+        val jsonString = inputStream.bufferedReader().use { it.readText() }
+
+        return json.decodeFromString<List<Driver>>(jsonString)
+    }
 }

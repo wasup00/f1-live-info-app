@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class Interval(
     @SerialName("gap_to_leader")
     val gapToLeader: Float?,
-    val interval: Float?,
+    val gapToDriverAhead: Float?,
     @SerialName("meeting_key")
     val meetingKey: Int,
     @SerialName("session_key")

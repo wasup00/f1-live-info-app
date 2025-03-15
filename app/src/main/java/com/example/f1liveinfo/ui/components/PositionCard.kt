@@ -105,7 +105,10 @@ fun PositionCardPreview() {
                     lapDuration = 1.234f,
                     sector1 = null,
                     sector2 = null,
-                    sector3 = null
+                    sector3 = null,
+                    sessionKey = 1,
+                    meetingKey = 1,
+                    isOutLap = false
                 )
             )
         )

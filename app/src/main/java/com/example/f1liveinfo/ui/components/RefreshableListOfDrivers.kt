@@ -30,7 +30,11 @@ fun RefreshableListOfDrivers(
             modifier = Modifier,
         ) {
             items(drivers) { driver ->
-                ExpandableDriverCard(isRace = isRace, driver = driver)
+                if (isRace) {
+                    ExpandableDriverCardRace(driver = driver)
+                } else {
+                    ExpandableDriverCard(driver = driver)
+                }
             }
         }
         PullRefreshIndicator(

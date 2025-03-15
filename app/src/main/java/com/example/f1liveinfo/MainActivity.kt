@@ -41,7 +41,6 @@ class MainActivity : ComponentActivity() {
                             driverViewModel.getDriversData()
                             meetingViewModel.getMeetingData()
                         },
-                        //fetchSessions = { meetingViewModel.getSessionsData() },
                         modifySessionKeyInMeeting = { sessionKey ->
                             meetingViewModel.modifySessionKeyInMeeting(
                                 sessionKey = sessionKey
@@ -50,6 +49,10 @@ class MainActivity : ComponentActivity() {
                         getDriversForSession = { sessionKey ->
                             driverViewModel.getDriversData(sessionKey = sessionKey.toString())
                         },
+                        fetchInterval = {
+//                            sessionKey ->
+//                            driverViewModel.ge
+                        }
                     )
                 }
             }

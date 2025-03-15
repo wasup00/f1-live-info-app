@@ -35,7 +35,7 @@ fun F1App(
     meetingUiState: MeetingUiState,
     driversUiState: DriversUiState,
     onRefresh: () -> Unit,
-    //fetchSessions: () -> Unit,
+    fetchInterval: (Int) -> Unit,
     modifySessionKeyInMeeting: (Int) -> Unit,
     getDriversForSession: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -53,6 +53,11 @@ fun F1App(
                     if (meeting.sessions.isNotEmpty()) {
                         isRace =
                             meeting.sessions.first { it.sessionKey == meeting.sessionKey }.sessionName == SessionName.Race
+                        if (isRace) {
+                            meeting.sessionKey?.let { fetchInterval(it) }
+                        } else {
+                            //TODO: fetch Lap
+                        }
                     }
                     ResultDrawerList(
                         meetingName = meeting.meetingName,
@@ -342,8 +347,8 @@ fun F1AppPreviewOnSuccess() {
         onRefresh = { },
         modifySessionKeyInMeeting = { },
         getDriversForSession = { },
-
-        )
+        fetchInterval = {}
+    )
 }
 
 @Preview(
@@ -360,7 +365,9 @@ fun F1AppPreviewOnLoading() {
         driversUiState = driversUiState,
         onRefresh = { },
         getDriversForSession = {},
-        modifySessionKeyInMeeting = {})
+        modifySessionKeyInMeeting = {},
+        fetchInterval = {}
+    )
 
 }
 
@@ -376,6 +383,8 @@ fun F1AppPreviewOnError() {
         driversUiState = driversUiState,
         onRefresh = { },
         getDriversForSession = {},
-        modifySessionKeyInMeeting = {})
+        modifySessionKeyInMeeting = {},
+        fetchInterval = {}
+    )
 
 }

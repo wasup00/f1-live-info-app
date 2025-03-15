@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.f1liveinfo.utils.Utils
 import com.example.f1liveinfo.viewmodel.DriversUiState
 
 @Composable
@@ -28,4 +30,17 @@ fun DriversScreen(
             modifier = modifier.fillMaxSize()
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DriversScreenPreview() {
+    DriversScreen(
+        isRace = true,
+        driversUiState = DriversUiState.Success(
+            Utils.readDriversDataFromJson().take(5)
+        ),
+        onRefresh = {},
+        modifier = Modifier
+    )
 }

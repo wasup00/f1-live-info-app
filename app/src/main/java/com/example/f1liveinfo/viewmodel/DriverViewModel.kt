@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.f1liveinfo.F1LiveInfoApplication
 import com.example.f1liveinfo.data.DriverRepository
+import com.example.f1liveinfo.data.IntervalRepository
 import com.example.f1liveinfo.data.LapRepository
 import com.example.f1liveinfo.data.PositionRepository
 import com.example.f1liveinfo.model.Driver
@@ -24,7 +25,8 @@ private const val TAG = "DriverViewModel"
 class DriverViewModel(
     private val driverRepository: DriverRepository,
     private val positionRepository: PositionRepository,
-    private val lapRepository: LapRepository
+    private val lapRepository: LapRepository,
+    private val intervalRepository: IntervalRepository
 ) : ViewModel() {
 
     var driversUiState: DriversUiState by mutableStateOf(DriversUiState.Loading)
@@ -63,12 +65,15 @@ class DriverViewModel(
                 val driversWithPositions = drivers.map { driver ->
                     val driverPositions =
                         positions.filter { it.driverNumber == driver.driverNumber }
-                        driver.copy(
-                            startingPosition = driverPositions.firstOrNull()?.position ?: 0,
-                            currentPosition = driverPositions.maxByOrNull { it.date }?.position ?: 0
-                        )
+                    driver.copy(
+                        startingPosition = driverPositions.firstOrNull()?.position ?: 0,
+                        currentPosition = driverPositions.maxByOrNull { it.date }?.position ?: 0
+                    )
                 }
-                return updateLatestLapOfDrivers(sessionKey = sessionKey, drivers = driversWithPositions)
+                return updateFastestLapOfDrivers(
+                    sessionKey = sessionKey,
+                    drivers = driversWithPositions
+                )
             }
 
             is ApiResult.Error -> {
@@ -80,7 +85,7 @@ class DriverViewModel(
         }
     }
 
-    private suspend fun updateLatestLapOfDrivers(
+    private suspend fun updateFastestLapOfDrivers(
         sessionKey: String?,
         drivers: List<Driver>
     ): DriversUiState {
@@ -89,8 +94,8 @@ class DriverViewModel(
                 val laps = lapResult.data
                 val driverWithLaps = drivers.map { driver ->
                     val driverLaps =
-                        laps.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null}
-                    driver.copy(latestLap = driverLaps.minByOrNull { it.lapDuration!! })
+                        laps.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null }
+                    driver.copy(fastestLap = driverLaps.minByOrNull { it.lapDuration!! })
                 }
                 return DriversUiState.Success(driverWithLaps.sortedBy { it.currentPosition })
             }
@@ -104,6 +109,28 @@ class DriverViewModel(
         }
     }
 
+//    fun fetchInterval(sessionKey: Int) {
+//        if (driversUiState is DriversUiState.Success) {
+//            viewModelScope.launch {
+//                when (val intervalResult = intervalRepository.getIntervals(sessionKey = sessionKey)){
+//                    is ApiResult.Success -> {
+//                        val intervals = intervalResult.data
+//                        val drivers = (driversUiState as DriversUiState.Success).drivers
+//                        val driverWithIntervals = drivers.map { driver ->
+//                            val driverInterval =
+//                                intervals.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null }
+//                            driver.copy(latestLap = driverIntervals.minByOrNull { it.lapDuration!! })
+//                        }
+//                    }
+//                    is ApiResult.Error -> {
+//                        intervalResult.exception.message?.let { Log.e("$TAG-INTERVAL", it) }
+//                    }
+//                }
+//
+//            }
+//        }
+//    }
+
     companion object {
         val Factory: Factory = viewModelFactory {
             initializer {
@@ -111,10 +138,12 @@ class DriverViewModel(
                 val driverRepository = application.container.driverRepository
                 val positionRepository = application.container.positionRepository
                 val lapRepository = application.container.lapRepository
+                val intervalRepository = application.container.intervalRepository
                 DriverViewModel(
                     driverRepository = driverRepository,
                     positionRepository = positionRepository,
-                    lapRepository = lapRepository
+                    lapRepository = lapRepository,
+                    intervalRepository = intervalRepository
                 )
             }
         }

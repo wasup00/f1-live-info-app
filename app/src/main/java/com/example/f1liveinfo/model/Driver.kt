@@ -23,7 +23,9 @@ data class Driver(
     val headshotUrl: String? = null,
     var currentPosition: Int? = null,
     var startingPosition: Int? = null,
-    val latestLap: Lap? = null
+    val latestLap: Lap? = null,
+    val fastestLap: Lap? = null,
+    val interval: Interval? = null
 )
 //{
 //    companion object {

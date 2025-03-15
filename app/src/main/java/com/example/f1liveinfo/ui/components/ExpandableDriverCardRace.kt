@@ -26,12 +26,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.f1liveinfo.model.Driver
+import com.example.f1liveinfo.model.Interval
 import com.example.f1liveinfo.model.Lap
 import com.example.f1liveinfo.utils.Utils
-import com.example.f1liveinfo.utils.Utils.convertLapDurationToString
+import com.example.f1liveinfo.utils.Utils.convertGapToDriverAheadToString
 
 @Composable
-fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
+fun ExpandableDriverCardRace(driver: Driver, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
     val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
@@ -56,7 +57,7 @@ fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
             PositionCard(
                 modifier = Modifier
                     .padding(start = 6.dp, end = 6.dp),
-                isRace = false,
+                isRace = true,
                 driver = driver
             )
             AsyncImage(
@@ -82,9 +83,9 @@ fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
                     color = Color.Black
                 )
             }
-            driver.latestLap?.let {
+            driver.interval?.let {
                 Text(
-                    text = it.convertLapDurationToString(),
+                    text = it.convertGapToDriverAheadToString(),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.Black,
@@ -108,9 +109,9 @@ fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = false)
 @Composable
-fun ExpandableDriverCardPreview() {
+fun ExpandableDriverCardRacePreview() {
     MaterialTheme {
-        ExpandableDriverCard(
+        ExpandableDriverCardRace(
             driver = Driver(
                 firstName = "Lewis",
                 lastName = "Hamilton",
@@ -128,9 +129,16 @@ fun ExpandableDriverCardPreview() {
                     sector1 = null,
                     sector2 = null,
                     sector3 = null,
-                    meetingKey = 1,
                     sessionKey = 1,
+                    meetingKey = 1,
                     isOutLap = false
+                ),
+                interval = Interval(
+                    sessionKey = 1,
+                    meetingKey = 1,
+                    driverNumber = 44,
+                    gapToDriverAhead = 0.235f,
+                    gapToLeader = 15.430f
                 )
             )
         )
