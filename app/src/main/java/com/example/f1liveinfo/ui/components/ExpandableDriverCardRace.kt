@@ -28,12 +28,17 @@ import coil.compose.AsyncImage
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Interval
 import com.example.f1liveinfo.model.Lap
+import com.example.f1liveinfo.model.Tire
 import com.example.f1liveinfo.utils.Utils
 import com.example.f1liveinfo.utils.Utils.convertGapToDriverAheadToString
 
 @Composable
-fun ExpandableDriverCardRace(driver: Driver, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+fun ExpandableDriverCardRace(
+    driver: Driver,
+    modifier: Modifier = Modifier,
+    isExpanded: Boolean = false
+) {
+    var expanded by remember { mutableStateOf(isExpanded) }
     val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
     Card(
@@ -83,6 +88,11 @@ fun ExpandableDriverCardRace(driver: Driver, modifier: Modifier = Modifier) {
                     color = Color.Black
                 )
             }
+            TireImage(
+                tire = driver.tire,
+                modifier = Modifier
+                    .padding(end = 6.dp)
+            )
             driver.interval?.let {
                 Text(
                     text = it.convertGapToDriverAheadToString(),
@@ -109,7 +119,48 @@ fun ExpandableDriverCardRace(driver: Driver, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = false)
 @Composable
-fun ExpandableDriverCardRacePreview() {
+fun ExpandableDriverCardRacePreviewExpanded() {
+    MaterialTheme {
+        ExpandableDriverCardRace(
+            driver = Driver(
+                firstName = "Lewis",
+                lastName = "Hamilton",
+                countryCode = "GBR",
+                teamName = "Mercedes",
+                teamColor = "00D2BE",
+                driverNumber = 44,
+                currentPosition = 1,
+                startingPosition = 1,
+                fullName = "Lewis HAMILTON",
+                tire = Tire.MEDIUM,
+                latestLap = Lap(
+                    lapNumber = 1,
+                    driverNumber = 44,
+                    lapDuration = 1.234f,
+                    sector1 = null,
+                    sector2 = null,
+                    sector3 = null,
+                    sessionKey = 1,
+                    meetingKey = 1,
+                    isOutLap = false
+                ),
+                interval = Interval(
+                    sessionKey = 1,
+                    meetingKey = 1,
+                    driverNumber = 44,
+                    gapToDriverAhead = 0.235f.toString(),
+                    gapToLeader = 15.430f.toString(),
+                    date = "2023-05-01T00:00:00"
+                )
+            ),
+            isExpanded = true
+        )
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun ExpandableDriverCardRacePreviewCollapsed() {
     MaterialTheme {
         ExpandableDriverCardRace(
             driver = Driver(
@@ -137,10 +188,12 @@ fun ExpandableDriverCardRacePreview() {
                     sessionKey = 1,
                     meetingKey = 1,
                     driverNumber = 44,
-                    gapToDriverAhead = 0.235f,
-                    gapToLeader = 15.430f
+                    gapToDriverAhead = 0.235f.toString(),
+                    gapToLeader = 15.430f.toString(),
+                    date = "2023-05-01T00:00:00"
                 )
-            )
+            ),
+            isExpanded = false
         )
     }
 }

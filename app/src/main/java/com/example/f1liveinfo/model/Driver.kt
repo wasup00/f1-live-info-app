@@ -25,18 +25,6 @@ data class Driver(
     var startingPosition: Int? = null,
     val latestLap: Lap? = null,
     val fastestLap: Lap? = null,
-    val interval: Interval? = null
+    val interval: Interval? = null,
+    val tire: Tire = Tire.UNKNOWN
 )
-//{
-//    companion object {
-//        fun driversToDriverPositionsMap(drivers: List<Driver>): HashMap<Int, Int> {
-//            val driverPositions = HashMap<Int, Int>()
-////            for (driver in drivers) {driverPositions[driver.driverNumber] = driver.position!!
-////            }
-//            drivers.forEach { driver ->
-//                driverPositions[driver.driverNumber] = driver.currentPosition!!
-//            }
-//            return driverPositions
-//        }
-//    }
-//}

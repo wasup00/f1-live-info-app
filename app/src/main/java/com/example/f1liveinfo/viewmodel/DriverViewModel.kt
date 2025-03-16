@@ -93,11 +93,18 @@ class DriverViewModel(
             is ApiResult.Success -> {
                 val laps = lapResult.data
                 val driverWithLaps = drivers.map { driver ->
-                    val driverLaps =
+                    val driverFastestLaps =
                         laps.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null }
-                    driver.copy(fastestLap = driverLaps.minByOrNull { it.lapDuration!! })
+                    val driverLastestLaps =
+                        laps.filter { it.driverNumber == driver.driverNumber }
+                    driver.copy(
+                        fastestLap = driverFastestLaps.minByOrNull { it.lapDuration!! },
+                        latestLap = driverLastestLaps.maxByOrNull { it.lapNumber })
                 }
-                return DriversUiState.Success(driverWithLaps.sortedBy { it.currentPosition })
+                return updateIntervalOfDrivers(
+                    sessionKey = sessionKey,
+                    drivers = driverWithLaps
+                )
             }
 
             is ApiResult.Error -> {
@@ -109,27 +116,31 @@ class DriverViewModel(
         }
     }
 
-//    fun fetchInterval(sessionKey: Int) {
-//        if (driversUiState is DriversUiState.Success) {
-//            viewModelScope.launch {
-//                when (val intervalResult = intervalRepository.getIntervals(sessionKey = sessionKey)){
-//                    is ApiResult.Success -> {
-//                        val intervals = intervalResult.data
-//                        val drivers = (driversUiState as DriversUiState.Success).drivers
-//                        val driverWithIntervals = drivers.map { driver ->
-//                            val driverInterval =
-//                                intervals.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null }
-//                            driver.copy(latestLap = driverIntervals.minByOrNull { it.lapDuration!! })
-//                        }
-//                    }
-//                    is ApiResult.Error -> {
-//                        intervalResult.exception.message?.let { Log.e("$TAG-INTERVAL", it) }
-//                    }
-//                }
-//
-//            }
-//        }
-//    }
+    private suspend fun updateIntervalOfDrivers(
+        sessionKey: String?,
+        drivers: List<Driver>
+    ): DriversUiState {
+        when (val intervalResult =
+            intervalRepository.getIntervals(sessionKey = sessionKey)) {
+            is ApiResult.Success -> {
+                val intervals = intervalResult.data
+                val driverWithIntervals = drivers.map { driver ->
+                    val driverInterval =
+                        intervals.filter { it.driverNumber == driver.driverNumber && it.gapToDriverAhead != null && it.gapToLeader != null }
+                    driver.copy(interval = driverInterval.maxByOrNull { it.date })
+                }
+                return DriversUiState.Success(driverWithIntervals.sortedBy { it.currentPosition })
+            }
+
+            is ApiResult.Error -> {
+                intervalResult.exception.message?.let { Log.e("$TAG-INTERVAL", it) }
+                return DriversUiState.Error(
+                    intervalResult.exception.message ?: "Failed to retrieve laps"
+                )
+            }
+        }
+    }
+
 
     companion object {
         val Factory: Factory = viewModelFactory {

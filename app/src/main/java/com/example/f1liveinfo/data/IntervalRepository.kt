@@ -8,17 +8,17 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 interface IntervalRepository {
-    suspend fun getIntervals(sessionKey: Int?): ApiResult<List<Interval>>
-    suspend fun getIntervals(sessionKey: Int?, driverNumber: Int): ApiResult<List<Interval>>
+    suspend fun getIntervals(sessionKey: String?): ApiResult<List<Interval>>
+    suspend fun getIntervals(sessionKey: String?, driverNumber: Int): ApiResult<List<Interval>>
 }
 
 class NetworkIntervalRepository(
     private val intervalApiService: IntervalApiService
 ) : IntervalRepository {
-    override suspend fun getIntervals(sessionKey: Int?): ApiResult<List<Interval>> =
+    override suspend fun getIntervals(sessionKey: String?): ApiResult<List<Interval>> =
         withContext(Dispatchers.IO) {
             try {
-                val laps = intervalApiService.getIntervals(sessionKey = sessionKey.toString())
+                val laps = intervalApiService.getIntervals(sessionKey = sessionKey)
                 ApiResult.Success(laps)
             } catch (e: IOException) {
                 ApiResult.Error(Exception("Network error. Please check your internet connection."))
@@ -28,14 +28,14 @@ class NetworkIntervalRepository(
         }
 
     override suspend fun getIntervals(
-        sessionKey: Int?,
+        sessionKey: String?,
         driverNumber: Int
     ): ApiResult<List<Interval>> =
         withContext(Dispatchers.IO) {
             try {
                 val laps =
                     intervalApiService.getIntervals(
-                        sessionKey = sessionKey.toString(),
+                        sessionKey = sessionKey,
                         driverNumber = driverNumber
                     )
                 ApiResult.Success(laps)

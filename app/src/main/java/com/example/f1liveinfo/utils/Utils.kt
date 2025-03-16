@@ -1,7 +1,7 @@
 package com.example.f1liveinfo.utils
 
-import android.graphics.Color.parseColor
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import com.example.f1liveinfo.model.Driver
 import com.example.f1liveinfo.model.Interval
 import com.example.f1liveinfo.model.Lap
@@ -28,7 +28,7 @@ object Utils {
      */
     fun convertToColor(colorStr: String, alpha: Float = 1.0f): Color {
         val hexStr = "#${colorStr}"
-        val colorInt = parseColor(hexStr)
+        val colorInt = hexStr.toColorInt()
         return Color(colorInt).copy(alpha = alpha)
     }
 
@@ -59,7 +59,7 @@ object Utils {
     fun Session.getFormatedDate(): String {
         val month = dateStart.monthValue.toString().padStart(2, '0')
         val day = dateStart.dayOfMonth.toString().padStart(2, '0')
-        return "$month-$day-${dateStart.year}"
+        return "$day-$month-${dateStart.year}"
     }
 
     fun Session.getFormatedTime(): String {
@@ -74,28 +74,50 @@ object Utils {
         if (gapToDriverAhead == null) {
             return ""
         }
-        val milliseconds = ((gapToDriverAhead % 1) * 1000).toInt()
-        val seconds = gapToDriverAhead.toInt() % 60
-        val minutes = gapToDriverAhead.toInt() / 60
 
-        val millisecondsString = milliseconds.toString().padStart(3, '0')
-        val secondsString = seconds.toString().padStart(2, '0')
-        val minutesString = minutes.toString().padStart(2, '0')
-        return "${minutesString}:${secondsString}.${millisecondsString}"
+        if (gapToDriverAhead.endsWith(" L")) {
+            val laps = gapToDriverAhead.removeSuffix(" L")
+            return "+$laps LAP${if (laps != "1") "S" else ""}"
+        }
+
+        try {
+            val gapFloat = gapToDriverAhead.toFloat()
+            val milliseconds = ((gapFloat % 1) * 1000).toInt()
+            val seconds = gapFloat.toInt() % 60
+            val minutes = gapFloat.toInt() / 60
+
+            val millisecondsString = milliseconds.toString().padStart(3, '0')
+            val secondsString = seconds.toString().padStart(2, '0')
+            val minutesString = minutes.toString().padStart(2, '0')
+            return "${minutesString}:${secondsString}.${millisecondsString}"
+        } catch (e: NumberFormatException) {
+            return gapToDriverAhead
+        }
     }
 
     fun Interval.getFormatedIntervalGapToLeader(): String {
         if (gapToLeader == null) {
             return ""
         }
-        val milliseconds = ((gapToLeader % 1) * 1000).toInt()
-        val seconds = gapToLeader.toInt() % 60
-        val minutes = gapToLeader.toInt() / 60
 
-        val millisecondsString = milliseconds.toString().padStart(3, '0')
-        val secondsString = seconds.toString().padStart(2, '0')
-        val minutesString = minutes.toString().padStart(2, '0')
-        return "${minutesString}:${secondsString}.${millisecondsString}"
+        if (gapToLeader.endsWith(" L")) {
+            val laps = gapToLeader.removeSuffix(" L")
+            return "+$laps LAP${if (laps != "1") "S" else ""}"
+        }
+
+        try {
+            val gapFloat = gapToLeader.toFloat()
+            val milliseconds = ((gapFloat % 1) * 1000).toInt()
+            val seconds = gapFloat.toInt() % 60
+            val minutes = gapFloat.toInt() / 60
+
+            val millisecondsString = milliseconds.toString().padStart(3, '0')
+            val secondsString = seconds.toString().padStart(2, '0')
+            val minutesString = minutes.toString().padStart(2, '0')
+            return "${minutesString}:${secondsString}.${millisecondsString}"
+        } catch (e: NumberFormatException) {
+            return gapToLeader
+        }
     }
 
     fun readDriversDataFromJson(): List<Driver> {

@@ -6,7 +6,7 @@ import com.example.f1liveinfo.utils.Utils
 object FakeDriverDataSource {
 
     val driversFromData =
-        Utils.readDriversDataFromJson() //json.decodeFromString<List<Driver>>(jsonString)
+        Utils.readDriversDataFromJson()
 
     val expectedDriversAndPositions = listOf(
         Driver(

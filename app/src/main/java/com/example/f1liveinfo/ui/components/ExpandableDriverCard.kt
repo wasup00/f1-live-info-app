@@ -31,8 +31,12 @@ import com.example.f1liveinfo.utils.Utils
 import com.example.f1liveinfo.utils.Utils.convertLapDurationToString
 
 @Composable
-fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+fun ExpandableDriverCard(
+    driver: Driver,
+    modifier: Modifier = Modifier,
+    isExpanded: Boolean = false
+) {
+    var expanded by remember { mutableStateOf(isExpanded) }
     val teamColor = Utils.convertToColor(driver.teamColor, 0.9f)
 
     Card(
@@ -108,7 +112,39 @@ fun ExpandableDriverCard(driver: Driver, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = false)
 @Composable
-fun ExpandableDriverCardPreview() {
+fun ExpandableDriverCardPreviewExpanded() {
+    MaterialTheme {
+        ExpandableDriverCard(
+            driver = Driver(
+                firstName = "Lewis",
+                lastName = "Hamilton",
+                countryCode = "British",
+                teamName = "Mercedes",
+                teamColor = "00D2BE",
+                driverNumber = 44,
+                currentPosition = 1,
+                startingPosition = 1,
+                fullName = "Lewis HAMILTON",
+                latestLap = Lap(
+                    lapNumber = 1,
+                    driverNumber = 44,
+                    lapDuration = 61.234f,
+                    sector1 = 10.200f,
+                    sector2 = 30.030f,
+                    sector3 = 21.004f,
+                    meetingKey = 1,
+                    sessionKey = 1,
+                    isOutLap = false
+                )
+            ),
+            isExpanded = true
+        )
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun ExpandableDriverCardPreviewCollapsed() {
     MaterialTheme {
         ExpandableDriverCard(
             driver = Driver(
@@ -132,7 +168,8 @@ fun ExpandableDriverCardPreview() {
                     sessionKey = 1,
                     isOutLap = false
                 )
-            )
+            ),
+            isExpanded = false
         )
     }
 }

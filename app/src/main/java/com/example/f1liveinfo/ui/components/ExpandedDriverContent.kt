@@ -39,8 +39,6 @@ fun ExpandedDriverContent(driver: Driver, modifier: Modifier = Modifier) {
                 color = Color.Black
             )
         }
-
-
     }
 }
 
@@ -50,7 +48,7 @@ fun ExpandedDriverContentPreview() {
     val driver = Driver(
         firstName = "Lewis",
         lastName = "Hamilton",
-        countryCode = "British",
+        countryCode = "GBR",
         teamName = "Mercedes",
         teamColor = "00D2BE",
         driverNumber = 44,
