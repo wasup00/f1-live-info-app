@@ -16,8 +16,12 @@ import com.example.f1liveinfo.data.IntervalRepository
 import com.example.f1liveinfo.data.LapRepository
 import com.example.f1liveinfo.data.PositionRepository
 import com.example.f1liveinfo.model.Driver
+import com.example.f1liveinfo.model.Interval
+import com.example.f1liveinfo.model.Lap
+import com.example.f1liveinfo.model.Position
 import com.example.f1liveinfo.network.ApiResult
 import com.example.f1liveinfo.utils.Utils.LATEST
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 private const val TAG = "DriverViewModel"
@@ -36,33 +40,50 @@ class DriverViewModel(
         getDriversData()
     }
 
+
     fun getDriversData(sessionKey: String? = LATEST) {
         driversUiState = DriversUiState.Loading
         viewModelScope.launch {
-            driversUiState = when (val driverResult = driverRepository.getDrivers(sessionKey)) {
+            when (val driversResult = driverRepository.getDrivers(sessionKey)) {
                 is ApiResult.Success -> {
-                    val drivers = driverResult.data
-                    updateCurrentPositionOfDrivers(sessionKey = sessionKey, drivers = drivers)
-                }
+                    val drivers = driversResult.data
 
+                    val positionsDeferred = async { positionRepository.getPositions(sessionKey) }
+                    val lapsDeferred = async { lapRepository.getLaps(sessionKey) }
+                    val intervalsDeferred = async { intervalRepository.getIntervals(sessionKey) }
+
+                    val positionsResult = positionsDeferred.await()
+                    val lapsResult = lapsDeferred.await()
+                    val intervalsResult = intervalsDeferred.await()
+
+                    driversUiState = processResults(
+                        drivers,
+                        positionsResult,
+                        lapsResult,
+                        intervalsResult
+                    )
+                }
                 is ApiResult.Error -> {
-                    driverResult.exception.message?.let { Log.e("$TAG-POSITION", it) }
-                    DriversUiState.Error(
-                        driverResult.exception.message ?: "Failed to retrieve drivers"
+                    driversResult.exception.message?.let { Log.e("$TAG-DRIVER", it) }
+                    driversUiState = DriversUiState.Error(
+                        driversResult.exception.message ?: "Failed to retrieve drivers"
                     )
                 }
             }
         }
     }
 
-    private suspend fun updateCurrentPositionOfDrivers(
-        sessionKey: String?,
-        drivers: List<Driver>
+    private fun processResults(
+        drivers: List<Driver>,
+        positionsResult: ApiResult<List<Position>>,
+        lapsResult: ApiResult<List<Lap>>,
+        intervalsResult: ApiResult<List<Interval>>
     ): DriversUiState {
-        when (val positionResult = positionRepository.getPositions(sessionKey)) {
+        // Process positions
+        val driversWithPositions = when (positionsResult) {
             is ApiResult.Success -> {
-                val positions = positionResult.data
-                val driversWithPositions = drivers.map { driver ->
+                val positions = positionsResult.data
+                drivers.map { driver ->
                     val driverPositions =
                         positions.filter { it.driverNumber == driver.driverNumber }
                     driver.copy(
@@ -70,72 +91,60 @@ class DriverViewModel(
                         currentPosition = driverPositions.maxByOrNull { it.date }?.position ?: 0
                     )
                 }
-                return updateFastestLapOfDrivers(
-                    sessionKey = sessionKey,
-                    drivers = driversWithPositions
-                )
             }
-
             is ApiResult.Error -> {
-                positionResult.exception.message?.let { Log.e("$TAG-POSITION", it) }
+                positionsResult.exception.message?.let { Log.e("$TAG-POSITION", it) }
                 return DriversUiState.Error(
-                    positionResult.exception.message ?: "Failed to retrieve positions"
+                    positionsResult.exception.message ?: "Failed to retrieve positions"
                 )
             }
         }
-    }
 
-    private suspend fun updateFastestLapOfDrivers(
-        sessionKey: String?,
-        drivers: List<Driver>
-    ): DriversUiState {
-        when (val lapResult = lapRepository.getLaps(sessionKey)) {
+        // Process laps
+        val driversWithLaps = when (lapsResult) {
             is ApiResult.Success -> {
-                val laps = lapResult.data
-                val driverWithLaps = drivers.map { driver ->
-                    val driverFastestLaps =
-                        laps.filter { it.driverNumber == driver.driverNumber && it.lapDuration != null }
-                    val driverLastestLaps =
-                        laps.filter { it.driverNumber == driver.driverNumber }
+                val laps = lapsResult.data
+                driversWithPositions.map { driver ->
+                    val driverFastestLaps = laps.filter {
+                        it.driverNumber == driver.driverNumber && it.lapDuration != null
+                    }
+                    val driverLatestLaps = laps.filter {
+                        it.driverNumber == driver.driverNumber
+                    }
                     driver.copy(
                         fastestLap = driverFastestLaps.minByOrNull { it.lapDuration!! },
-                        latestLap = driverLastestLaps.maxByOrNull { it.lapNumber })
+                        latestLap = driverLatestLaps.maxByOrNull { it.lapNumber }
+                    )
                 }
-                return updateIntervalOfDrivers(
-                    sessionKey = sessionKey,
-                    drivers = driverWithLaps
-                )
             }
-
             is ApiResult.Error -> {
-                lapResult.exception.message?.let { Log.e("$TAG-LAP", it) }
+                lapsResult.exception.message?.let { Log.e("$TAG-LAP", it) }
                 return DriversUiState.Error(
-                    lapResult.exception.message ?: "Failed to retrieve laps"
+                    lapsResult.exception.message ?: "Failed to retrieve laps"
                 )
             }
         }
-    }
 
-    private suspend fun updateIntervalOfDrivers(
-        sessionKey: String?,
-        drivers: List<Driver>
-    ): DriversUiState {
-        when (val intervalResult =
-            intervalRepository.getIntervals(sessionKey = sessionKey)) {
+        // Process intervals
+        return when (intervalsResult) {
             is ApiResult.Success -> {
-                val intervals = intervalResult.data
-                val driverWithIntervals = drivers.map { driver ->
-                    val driverInterval =
-                        intervals.filter { it.driverNumber == driver.driverNumber && it.gapToDriverAhead != null && it.gapToLeader != null }
-                    driver.copy(interval = driverInterval.maxByOrNull { it.date })
+                val intervals = intervalsResult.data
+                val driversWithIntervals = driversWithLaps.map { driver ->
+                    val driverInterval = intervals.filter {
+                        it.driverNumber == driver.driverNumber &&
+                                it.gapToDriverAhead != null &&
+                                it.gapToLeader != null
+                    }
+                    driver.copy(
+                        interval = driverInterval.maxByOrNull { it.date }
+                    )
                 }
-                return DriversUiState.Success(driverWithIntervals.sortedBy { it.currentPosition })
+                DriversUiState.Success(driversWithIntervals.sortedBy { it.currentPosition })
             }
-
             is ApiResult.Error -> {
-                intervalResult.exception.message?.let { Log.e("$TAG-INTERVAL", it) }
-                return DriversUiState.Error(
-                    intervalResult.exception.message ?: "Failed to retrieve laps"
+                intervalsResult.exception.message?.let { Log.e("$TAG-INTERVAL", it) }
+                DriversUiState.Error(
+                    intervalsResult.exception.message ?: "Failed to retrieve intervals"
                 )
             }
         }
